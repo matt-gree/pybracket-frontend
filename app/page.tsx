@@ -2,6 +2,8 @@ import { BracketStudio } from '@/components/BracketStudio';
 import { PyodideProvider } from '@/components/PyodideProvider';
 import { PageHeader } from '@/components/ui';
 
+export const runtime = 'edge';
+
 export default function Home() {
 	return (
 		<div>

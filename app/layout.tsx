@@ -9,6 +9,8 @@ const rajdhani = Rajdhani({
 	variable: '--font-rajdhani'
 });
 
+export const runtime = 'edge';
+
 export const metadata: Metadata = {
 	title: {
 		default: 'pybracket Studio',
