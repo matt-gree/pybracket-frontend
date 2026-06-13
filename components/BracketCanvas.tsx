@@ -18,11 +18,12 @@ interface Props {
 	onReport: (matchId: number, winnerId: number) => void;
 	onChoice: (matchId: number, opponentId: number) => void;
 	onOpenDetail: (matchId: number) => void;
+	draft?: boolean;
 }
 
 const HEADER_HEIGHT = 28;
 
-export function BracketCanvas({ bracket, readyIds, onReport, onChoice, onOpenDetail }: Props) {
+export function BracketCanvas({ bracket, readyIds, onReport, onChoice, onOpenDetail, draft = false }: Props) {
 	const byId = useMemo<Record<number, Participant>>(() => {
 		const map: Record<number, Participant> = {};
 		for (const p of bracket.participants) map[p.id] = p;
@@ -94,6 +95,7 @@ export function BracketCanvas({ bracket, readyIds, onReport, onChoice, onOpenDet
 													onReport={onReport}
 													onChoice={onChoice}
 													onOpenDetail={onOpenDetail}
+													draft={draft}
 												/>
 											</div>
 										);

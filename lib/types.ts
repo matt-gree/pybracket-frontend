@@ -6,7 +6,8 @@ export type BracketFormat =
 	| 'double_elim'
 	| 'round_robin'
 	| 'swiss'
-	| 'gauntlet';
+	| 'gauntlet'
+	| 'pools';
 
 export type BracketSide = 'winners' | 'losers' | 'grand_final';
 
@@ -107,4 +108,38 @@ export type DispatchResult =
 export interface BracketBundle {
 	bracket: Bracket;
 	query: BracketQuery;
+}
+
+// --- pools ---------------------------------------------------------------------------------
+// A PoolsBracket is a composite: round-robin pools feeding an elimination bracket that stays
+// in DRAFT until the organizer publishes it. Each pool and the elimination are plain Brackets.
+export interface PoolsBracketData {
+	pools: Bracket[];
+	elimination: Bracket;
+	participants: Participant[];
+	config: Record<string, unknown>;
+}
+
+export interface PoolsQuery {
+	pools: BracketQuery[];
+	pools_complete: boolean;
+	elimination: BracketQuery;
+	elimination_state: BracketState;
+	advancing_ids: number[];
+}
+
+export interface PoolsBundle {
+	pools: PoolsBracketData;
+	query: PoolsQuery;
+}
+
+export type PoolsDispatchResult =
+	| { ok: true; pools: PoolsBracketData; pools_query: PoolsQuery }
+	| { ok: false; error: string };
+
+export type AnyDispatchResult = DispatchResult | PoolsDispatchResult;
+
+/** Narrow a dispatch envelope to the pools shape. */
+export function isPoolsResult(result: AnyDispatchResult): result is { ok: true; pools: PoolsBracketData; pools_query: PoolsQuery } {
+	return result.ok && 'pools' in result;
 }

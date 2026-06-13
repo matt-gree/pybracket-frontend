@@ -277,6 +277,10 @@ function FormatOptions({
 					)}
 				</>
 			)}
+
+			{format === 'pools' && (
+				<PoolsOptions o={o} setOption={setOption} participantCount={participantCount} />
+			)}
 		</div>
 	);
 }
@@ -406,6 +410,82 @@ function ByeConfig({
 				</div>
 			)}
 		</div>
+	);
+}
+
+function PoolsOptions({
+	o,
+	setOption,
+	participantCount
+}: {
+	o: BuilderState['options'];
+	setOption: <K extends keyof BuilderState['options']>(k: K, v: BuilderState['options'][K]) => void;
+	participantCount: number;
+}) {
+	const maxPools = Math.max(1, Math.floor(participantCount / 2));
+	const poolCount = Math.min(o.num_pools, maxPools);
+	const smallestPool = Math.floor(participantCount / poolCount);
+	const advancing = poolCount * o.advancement_count;
+
+	return (
+		<>
+			<div>
+				<span className="label">Number of pools</span>
+				<select
+					className="select"
+					value={poolCount}
+					onChange={(e) => setOption('num_pools', Number(e.target.value))}
+				>
+					{Array.from({ length: maxPools - 1 }, (_, i) => i + 2).map((n) => (
+						<option key={n} value={n}>
+							{n} pools (~{Math.floor(participantCount / n)} each)
+						</option>
+					))}
+				</select>
+			</div>
+			<div>
+				<span className="label">Advance per pool</span>
+				<select
+					className="select"
+					value={o.advancement_count}
+					onChange={(e) => setOption('advancement_count', Number(e.target.value))}
+				>
+					{Array.from({ length: Math.max(1, smallestPool) }, (_, i) => i + 1).map((n) => (
+						<option key={n} value={n}>
+							Top {n}
+						</option>
+					))}
+				</select>
+				<p className="mt-1 text-[0.7rem] text-fog-500">
+					{advancing} players advance to the elimination bracket.
+				</p>
+			</div>
+			<div>
+				<span className="label">Elimination bracket</span>
+				<select
+					className="select"
+					value={o.pool_bracket_format}
+					onChange={(e) => setOption('pool_bracket_format', e.target.value as 'single_elim' | 'double_elim')}
+				>
+					<option value="double_elim">Double elimination</option>
+					<option value="single_elim">Single elimination</option>
+				</select>
+			</div>
+			{o.pool_bracket_format === 'double_elim' && (
+				<Toggle
+					label="Grand final reset"
+					checked={o.grand_final_reset}
+					onChange={(v) => setOption('grand_final_reset', v)}
+				/>
+			)}
+			{o.pool_bracket_format === 'single_elim' && (
+				<Toggle
+					label="Third-place match"
+					checked={o.third_place_match}
+					onChange={(v) => setOption('third_place_match', v)}
+				/>
+			)}
+		</>
 	);
 }
 

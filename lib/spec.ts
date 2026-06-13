@@ -31,6 +31,11 @@ export const FORMATS: FormatMeta[] = [
 		value: 'gauntlet',
 		label: 'Gauntlet',
 		blurb: 'A single linear ladder, or a dual two-bracket challenge into the top seeds.'
+	},
+	{
+		value: 'pools',
+		label: 'Pools',
+		blurb: 'Round-robin pools seed survivors into an elimination bracket you confirm before play.'
 	}
 ];
 
@@ -50,6 +55,10 @@ export interface BuilderOptions {
 	gauntlet_style: 'single' | 'dual';
 	opponent_choice: boolean;
 	choice_scope: 'round' | 'semifinals';
+	// pools
+	num_pools: number;
+	advancement_count: number;
+	pool_bracket_format: 'single_elim' | 'double_elim';
 }
 
 export interface BuilderState {
@@ -71,7 +80,10 @@ export const DEFAULT_OPTIONS: BuilderOptions = {
 	pairing_method: 'dutch',
 	gauntlet_style: 'dual',
 	opponent_choice: false,
-	choice_scope: 'round'
+	choice_scope: 'round',
+	num_pools: 2,
+	advancement_count: 2,
+	pool_bracket_format: 'double_elim'
 };
 
 export function defaultBuilderState(): BuilderState {
@@ -176,6 +188,15 @@ export function buildCreateAction(state: BuilderState): CreateAction {
 				style: o.gauntlet_style,
 				opponent_choice: o.gauntlet_style === 'dual' ? o.opponent_choice : false,
 				choice_scope: o.choice_scope
+			};
+			break;
+		case 'pools':
+			options = {
+				num_pools: o.num_pools,
+				advancement_count: o.advancement_count,
+				bracket_format: o.pool_bracket_format,
+				grand_final_reset: o.grand_final_reset,
+				third_place_match: o.third_place_match
 			};
 			break;
 	}

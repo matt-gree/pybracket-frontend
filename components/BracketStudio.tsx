@@ -5,12 +5,19 @@ import { BracketCanvas } from '@/components/BracketCanvas';
 import { BuilderForm } from '@/components/BuilderForm';
 import { InspectorPanel } from '@/components/InspectorPanel';
 import { MatchDetailModal } from '@/components/MatchDetailModal';
+import { PoolsView } from '@/components/PoolsView';
 import { StandingsPanel } from '@/components/StandingsPanel';
 import { usePyodide } from '@/components/PyodideProvider';
 import { Badge, EmptyState, Panel, PanelHeader, Spinner } from '@/components/ui';
 import { STAGE_LABEL } from '@/lib/pyodide';
 import { buildCreateAction, defaultBuilderState, type BuilderState } from '@/lib/spec';
-import type { BracketBundle, DispatchResult, Participant } from '@/lib/types';
+import {
+	isPoolsResult,
+	type AnyDispatchResult,
+	type BracketBundle,
+	type Participant,
+	type PoolsBundle
+} from '@/lib/types';
 
 type Decide = 'seed' | 'random';
 
@@ -18,6 +25,7 @@ export function BracketStudio() {
 	const { engine, stage, error: loadError, retry } = usePyodide();
 	const [state, setState] = useState<BuilderState>(defaultBuilderState);
 	const [bundle, setBundle] = useState<BracketBundle | null>(null);
+	const [poolsBundle, setPoolsBundle] = useState<PoolsBundle | null>(null);
 	const [busy, setBusy] = useState(false);
 	const [runtimeError, setRuntimeError] = useState<string | null>(null);
 	const [detailId, setDetailId] = useState<number | null>(null);
@@ -28,24 +36,29 @@ export function BracketStudio() {
 		return map;
 	}, [bundle]);
 
-	const apply = useCallback(
-		(result: DispatchResult): boolean => {
-			if (!result.ok) {
-				setRuntimeError(result.error);
-				return false;
-			}
-			setRuntimeError(null);
-			setBundle({ bracket: result.bracket, query: result.query });
-			return true;
-		},
-		[]
-	);
+	const apply = useCallback((result: AnyDispatchResult): boolean => {
+		if (!result.ok) {
+			setRuntimeError(result.error);
+			return false;
+		}
+		setRuntimeError(null);
+		if ('bracket' in result) setBundle({ bracket: result.bracket, query: result.query });
+		return true;
+	}, []);
 
 	const handleGenerate = useCallback(() => {
 		if (!engine) return;
 		setBusy(true);
 		const result = engine.dispatch(buildCreateAction(state));
 		setBusy(false);
+		// Pools return a composite shape; everything else is a single bracket.
+		if (isPoolsResult(result)) {
+			setRuntimeError(null);
+			setBundle(null);
+			setPoolsBundle({ pools: result.pools, query: result.pools_query });
+			return;
+		}
+		setPoolsBundle(null);
 		apply(result);
 	}, [engine, state, apply]);
 
@@ -121,7 +134,7 @@ export function BracketStudio() {
 						match_id: choice.id,
 						opponent_id: pick
 					});
-					if (!res.ok) return apply(res);
+					if (!res.ok || !('bracket' in res)) return apply(res);
 					bracket = res.bracket;
 					query = res.query;
 					continue;
@@ -129,7 +142,7 @@ export function BracketStudio() {
 				if (query.ready_match_ids.length === 0) {
 					if (bracket.format === 'swiss') {
 						const res = engine.dispatch({ op: 'advance_swiss', bracket });
-						if (!res.ok) return apply(res);
+						if (!res.ok || !('bracket' in res)) return apply(res);
 						bracket = res.bracket;
 						query = res.query;
 						continue;
@@ -140,7 +153,7 @@ export function BracketStudio() {
 				const m = bracket.matches.find((x) => x.id === mid)!;
 				const winner = pickWinner(bracket, m.participant1_id!, m.participant2_id!, decide);
 				const res = engine.dispatch({ op: 'report', bracket, match_id: mid, winner_id: winner });
-				if (!res.ok) return apply(res);
+				if (!res.ok || !('bracket' in res)) return apply(res);
 				bracket = res.bracket;
 				query = res.query;
 			}
@@ -152,6 +165,7 @@ export function BracketStudio() {
 
 	const handleReset = useCallback(() => {
 		setBundle(null);
+		setPoolsBundle(null);
 		setRuntimeError(null);
 	}, []);
 
@@ -190,7 +204,21 @@ export function BracketStudio() {
 					</div>
 				)}
 
-				{!bundle ? (
+				{poolsBundle && engine ? (
+					<>
+						<div className="flex items-center justify-end">
+							<button type="button" onClick={handleReset} className="btn-secondary px-3 py-1 text-xs">
+								Clear
+							</button>
+						</div>
+						<PoolsView
+							engine={engine}
+							bundle={poolsBundle}
+							onChange={setPoolsBundle}
+							onError={setRuntimeError}
+						/>
+					</>
+				) : !bundle ? (
 					<Panel>
 						<EmptyState
 							title={ready ? 'No bracket yet' : 'Starting the engine'}

@@ -14,11 +14,13 @@ interface Props {
 	onReport: (matchId: number, winnerId: number) => void;
 	onChoice: (matchId: number, opponentId: number) => void;
 	onOpenDetail: (matchId: number) => void;
+	// DRAFT seeding view: every slot shows TBD and nothing is interactive (spec §2).
+	draft?: boolean;
 }
 
-export function MatchCard({ match, byId, ready, onReport, onChoice, onOpenDetail }: Props) {
+export function MatchCard({ match, byId, ready, onReport, onChoice, onOpenDetail, draft = false }: Props) {
 	const notNeeded = match.status === 'not_needed';
-	const choosing = match.status === 'pending_choice';
+	const choosing = !draft && match.status === 'pending_choice';
 	const choicePool = (match.metadata?.choice_pool as number[] | undefined) ?? [];
 
 	return (
@@ -44,9 +46,9 @@ export function MatchCard({ match, byId, ready, onReport, onChoice, onOpenDetail
 			</button>
 
 			<div className="flex min-w-0 flex-1 flex-col justify-center">
-				<Slot match={match} slot={1} byId={byId} ready={ready} notNeeded={notNeeded} onReport={onReport} />
+				<Slot match={match} slot={1} byId={byId} ready={ready} notNeeded={notNeeded} draft={draft} onReport={onReport} />
 				<div className="border-t border-night-800" />
-				<Slot match={match} slot={2} byId={byId} ready={ready} notNeeded={notNeeded} onReport={onReport} />
+				<Slot match={match} slot={2} byId={byId} ready={ready} notNeeded={notNeeded} draft={draft} onReport={onReport} />
 
 				{choosing && choicePool.length > 0 && (
 					<div className="border-t border-night-800 px-1.5 py-1">
@@ -78,6 +80,7 @@ function Slot({
 	byId,
 	ready,
 	notNeeded,
+	draft,
 	onReport
 }: {
 	match: Match;
@@ -85,13 +88,14 @@ function Slot({
 	byId: Record<number, Participant>;
 	ready: boolean;
 	notNeeded: boolean;
+	draft: boolean;
 	onReport: (matchId: number, winnerId: number) => void;
 }) {
 	const pid = slot === 1 ? match.participant1_id : match.participant2_id;
 	const participant = pid != null ? byId[pid] : undefined;
-	const isWinner = pid != null && match.winner_id === pid;
-	const isLoser = match.status === 'completed' && pid != null && match.winner_id !== pid;
-	const clickable = ready && pid != null && match.status === 'ready';
+	const isWinner = !draft && pid != null && match.winner_id === pid;
+	const isLoser = !draft && match.status === 'completed' && pid != null && match.winner_id !== pid;
+	const clickable = !draft && ready && pid != null && match.status === 'ready';
 
 	const base = 'flex items-center gap-2 px-2 py-1 leading-tight';
 	const tone = isWinner
@@ -103,10 +107,10 @@ function Slot({
 	let content;
 	if (notNeeded) {
 		content = <span className="text-fog-600">—</span>;
-	} else if (participant) {
-		content = <span className="truncate">{participant.name}</span>;
-	} else {
+	} else if (draft || !participant) {
 		content = <span className="italic text-fog-500">TBD</span>;
+	} else {
+		content = <span className="truncate">{participant.name}</span>;
 	}
 
 	if (clickable) {

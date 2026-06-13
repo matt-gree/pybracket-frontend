@@ -57,6 +57,24 @@ def _build(fmt, participants, options):
     raise ValueError(f"Unknown format: {fmt!r}")
 
 
+def _build_pools(participants, options):
+    bracket_format = options.get("bracket_format", "double_elim")
+    # Forward the elimination bracket's own options as bracket_kwargs.
+    bracket_kwargs = {}
+    if bracket_format == "double_elim":
+        bracket_kwargs["grand_final_reset"] = bool(options.get("grand_final_reset", True))
+    elif bracket_format == "single_elim":
+        bracket_kwargs["third_place_match"] = bool(options.get("third_place_match", False))
+    return pb.generate_pools(
+        _participants(participants),
+        num_pools=int(options.get("num_pools", 2)),
+        advancement_count=int(options.get("advancement_count", 2)),
+        bracket_format=bracket_format,
+        snake_shuffle=bool(options.get("snake_shuffle", True)),
+        **bracket_kwargs,
+    )
+
+
 def _participant_dict(p):
     return {"id": p.id, "seed": p.seed, "name": p.name, "stats": dict(p.stats)}
 
@@ -103,14 +121,66 @@ def _ok(bracket, signals=None):
     return json.dumps(payload)
 
 
+# --- pools ------------------------------------------------------------------------------------
+# A PoolsBracket is not a Bracket: it holds the round-robin pools, the elimination bracket, and
+# its own config. Each pool and the elimination are plain Brackets, so the studio plays them with
+# the normal report/unwind ops and only needs special ops for drafting/publishing the bracket.
+
+
+def _pools_to_dict(pools):
+    return {
+        "pools": [pb.bracket_to_dict(p) for p in pools.pools],
+        "elimination": pb.bracket_to_dict(pools.elimination),
+        "participants": [_participant_dict(p) for p in pools.participants],
+        "config": dict(pools.config),
+    }
+
+
+def _pools_from_dict(data):
+    return pb.PoolsBracket(
+        pools=[pb.bracket_from_dict(p) for p in data["pools"]],
+        elimination=pb.bracket_from_dict(data["elimination"]),
+        participants=_participants(data["participants"]),
+        config=dict(data.get("config", {})),
+    )
+
+
+def _pools_query(pools):
+    return {
+        "pools": [_query(p) for p in pools.pools],
+        "pools_complete": all(pb.is_complete(p) for p in pools.pools),
+        "elimination": _query(pools.elimination),
+        "elimination_state": pools.elimination.state.value,
+        "advancing_ids": list(pools.config.get("advancing_ids", [])),
+    }
+
+
+def _ok_pools(pools):
+    return json.dumps(
+        {"ok": True, "pools": _pools_to_dict(pools), "pools_query": _pools_query(pools)}
+    )
+
+
 def dispatch(action_json):
     try:
         action = json.loads(action_json)
         op = action.get("op")
 
         if op == "create":
+            if action["format"] == "pools":
+                return _ok_pools(_build_pools(action["participants"], action.get("options", {})))
             bracket = _build(action["format"], action["participants"], action.get("options", {}))
             return _ok(bracket)
+
+        # Pool-level lifecycle ops carry the whole PoolsBracket; the individual pools and the
+        # elimination bracket are played with the ordinary report/unwind ops below.
+        if op in ("draft_pools", "reseed_pools", "publish_bracket"):
+            pools = _pools_from_dict(action["pools_bracket"])
+            if op == "publish_bracket":
+                pools = pb.publish_bracket(pools)
+            else:
+                pools = pb.draft_pools_to_bracket(pools, new_seed_order=action.get("new_seed_order"))
+            return _ok_pools(pools)
 
         bracket = pb.bracket_from_dict(action["bracket"])
 

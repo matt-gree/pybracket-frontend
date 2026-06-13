@@ -30,3 +30,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Python bytecode (bridge.py is loaded as source)
+__pycache__/
+*.pyc
