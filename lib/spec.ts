@@ -41,6 +41,8 @@ export interface BuilderOptions {
 	third_place_match: boolean;
 	grand_final_reset: boolean;
 	protected_seeds: number;
+	// single elim: explicit per-seed bye rounds, or null for the standard power-of-two strategy
+	bye_rounds: Record<number, number> | null;
 	// swiss
 	swiss_rounds: SwissRoundsMode;
 	pairing_method: PairingMethod;
@@ -64,6 +66,7 @@ export const DEFAULT_OPTIONS: BuilderOptions = {
 	third_place_match: false,
 	grand_final_reset: true,
 	protected_seeds: 0,
+	bye_rounds: null,
 	swiss_rounds: 'auto',
 	pairing_method: 'dutch',
 	gauntlet_style: 'dual',
@@ -105,6 +108,23 @@ export function protectedSeedChoices(count: number): number[] {
 	return choices;
 }
 
+function nextPowerOfTwo(n: number): number {
+	let p = 1;
+	while (p < n) p *= 2;
+	return p;
+}
+
+/**
+ * The standard single-elim bye strategy as an explicit per-seed map: the top `size - count`
+ * seeds receive one bye, everyone else zero. Used to pre-fill the bye-configuration editor.
+ */
+export function standardByeRounds(count: number): Record<number, number> {
+	const byes = nextPowerOfTwo(count) - count;
+	const map: Record<number, number> = {};
+	for (let seed = 1; seed <= count; seed++) map[seed] = seed <= byes ? 1 : 0;
+	return map;
+}
+
 export function makeParticipants(state: BuilderState): Participant[] {
 	return Array.from({ length: state.participantCount }, (_, i) => {
 		const raw = state.names[i]?.trim();
@@ -132,7 +152,12 @@ export function buildCreateAction(state: BuilderState): CreateAction {
 
 	switch (state.format) {
 		case 'single_elim':
-			options = { third_place_match: o.third_place_match, protected_seeds: o.protected_seeds };
+			options = {
+				third_place_match: o.third_place_match,
+				// bye_rounds fully determines the structure, so protected_seeds is mutually exclusive.
+				protected_seeds: o.bye_rounds ? 0 : o.protected_seeds,
+				...(o.bye_rounds ? { bye_rounds: o.bye_rounds } : {})
+			};
 			break;
 		case 'double_elim':
 			options = { grand_final_reset: o.grand_final_reset, protected_seeds: o.protected_seeds };

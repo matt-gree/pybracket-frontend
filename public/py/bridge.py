@@ -20,10 +20,16 @@ def _participants(items):
 def _build(fmt, participants, options):
     ps = _participants(participants)
     if fmt == "single_elim":
+        raw_bye_rounds = options.get("bye_rounds")
+        bye_rounds = None
+        if raw_bye_rounds:
+            # JS object keys arrive as strings; the library keys bye_rounds by seed (int).
+            bye_rounds = {int(k): int(v) for k, v in raw_bye_rounds.items() if int(v) > 0}
         return pb.generate_single_elim(
             ps,
             third_place_match=bool(options.get("third_place_match", False)),
-            protected_seeds=int(options.get("protected_seeds", 0)),
+            protected_seeds=0 if bye_rounds else int(options.get("protected_seeds", 0)),
+            bye_rounds=bye_rounds or None,
         )
     if fmt == "double_elim":
         return pb.generate_double_elim(
@@ -111,8 +117,24 @@ def dispatch(action_json):
         if op == "report":
             adv = pb.AdvancementType(action.get("advancement_type", "result"))
             bracket = pb.report_result(
-                bracket, action["match_id"], action["winner_id"], advancement_type=adv
+                bracket,
+                action["match_id"],
+                action["winner_id"],
+                advancement_type=adv,
+                metadata=action.get("metadata"),
             )
+            return _ok(bracket)
+
+        if op == "update_match":
+            # Direct per-match edits from the detail modal: best-of and stored score live on the
+            # match itself (best_of) and its metadata (the library never reads metadata).
+            match = pb.get_match(bracket, action["match_id"])
+            if match is None:
+                raise pb.MatchNotFoundError(f"No match with id {action['match_id']}.")
+            if "best_of" in action and action["best_of"] is not None:
+                match.best_of = int(action["best_of"])
+            if "metadata" in action and action["metadata"] is not None:
+                match.metadata = {**match.metadata, **action["metadata"]}
             return _ok(bracket)
 
         if op == "report_choice":

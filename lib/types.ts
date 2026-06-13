@@ -10,7 +10,13 @@ export type BracketFormat =
 
 export type BracketSide = 'winners' | 'losers' | 'grand_final';
 
-export type MatchStatus = 'pending' | 'ready' | 'bye' | 'completed' | 'pending_choice';
+export type MatchStatus =
+	| 'pending'
+	| 'ready'
+	| 'bye'
+	| 'completed'
+	| 'pending_choice'
+	| 'not_needed';
 
 export type AdvancementType = 'result' | 'bye' | 'forfeit' | 'walkover';
 

@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { BracketCanvas } from '@/components/BracketCanvas';
 import { BuilderForm } from '@/components/BuilderForm';
 import { InspectorPanel } from '@/components/InspectorPanel';
+import { MatchDetailModal } from '@/components/MatchDetailModal';
 import { StandingsPanel } from '@/components/StandingsPanel';
 import { usePyodide } from '@/components/PyodideProvider';
 import { Badge, EmptyState, Panel, PanelHeader, Spinner } from '@/components/ui';
@@ -19,6 +20,7 @@ export function BracketStudio() {
 	const [bundle, setBundle] = useState<BracketBundle | null>(null);
 	const [busy, setBusy] = useState(false);
 	const [runtimeError, setRuntimeError] = useState<string | null>(null);
+	const [detailId, setDetailId] = useState<number | null>(null);
 
 	const byId = useMemo<Record<number, Participant>>(() => {
 		const map: Record<number, Participant> = {};
@@ -48,9 +50,25 @@ export function BracketStudio() {
 	}, [engine, state, apply]);
 
 	const handleReport = useCallback(
-		(matchId: number, winnerId: number) => {
+		(matchId: number, winnerId: number, metadata?: Record<string, unknown>) => {
 			if (!engine || !bundle) return;
-			apply(engine.dispatch({ op: 'report', bracket: bundle.bracket, match_id: matchId, winner_id: winnerId }));
+			apply(
+				engine.dispatch({
+					op: 'report',
+					bracket: bundle.bracket,
+					match_id: matchId,
+					winner_id: winnerId,
+					metadata
+				})
+			);
+		},
+		[engine, bundle, apply]
+	);
+
+	const handleUpdate = useCallback(
+		(matchId: number, patch: { best_of?: number; metadata?: Record<string, unknown> }) => {
+			if (!engine || !bundle) return;
+			apply(engine.dispatch({ op: 'update_match', bracket: bundle.bracket, match_id: matchId, ...patch }));
 		},
 		[engine, bundle, apply]
 	);
@@ -142,7 +160,13 @@ export function BracketStudio() {
 	const needsSwissAdvance =
 		bundle?.bracket.format === 'swiss' && q && !q.is_complete && q.ready_match_ids.length === 0;
 
+	const detailMatch = bundle && detailId != null ? bundle.bracket.matches.find((m) => m.id === detailId) : undefined;
+	const detailRound = detailMatch
+		? (bundle!.bracket.rounds.find((r) => r.match_ids.includes(detailMatch.id))?.name ?? '')
+		: '';
+
 	return (
+		<>
 		<div className="grid grid-cols-1 gap-5 lg:grid-cols-[340px_minmax(0,1fr)]">
 			{/* Left: builder */}
 			<div className="flex flex-col gap-4">
@@ -193,8 +217,8 @@ export function BracketStudio() {
 								bracket={bundle.bracket}
 								readyIds={bundle.query.ready_match_ids}
 								onReport={handleReport}
-								onUnwind={handleUnwind}
 								onChoice={handleChoice}
+								onOpenDetail={setDetailId}
 							/>
 						</Panel>
 
@@ -211,6 +235,18 @@ export function BracketStudio() {
 				)}
 			</div>
 		</div>
+		{detailMatch && (
+			<MatchDetailModal
+				match={detailMatch}
+				byId={byId}
+				roundName={detailRound}
+				onReport={handleReport}
+				onUnwind={handleUnwind}
+				onUpdate={handleUpdate}
+				onClose={() => setDetailId(null)}
+			/>
+		)}
+		</>
 	);
 }
 

@@ -1,4 +1,53 @@
-import type { ReactNode } from 'react';
+'use client';
+
+import { useEffect, type ReactNode } from 'react';
+
+export function Modal({
+	title,
+	onClose,
+	children
+}: {
+	title: string;
+	onClose: () => void;
+	children: ReactNode;
+}) {
+	useEffect(() => {
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') onClose();
+		};
+		document.addEventListener('keydown', onKey);
+		return () => document.removeEventListener('keydown', onKey);
+	}, [onClose]);
+
+	return (
+		<div
+			className="fixed inset-0 z-50 flex items-center justify-center bg-night-950/70 p-4"
+			role="dialog"
+			aria-modal="true"
+			onClick={onClose}
+		>
+			<div
+				className="panel w-full max-w-md overflow-hidden"
+				onClick={(e) => e.stopPropagation()}
+			>
+				<div className="flex items-center justify-between gap-3 border-b border-night-700 bg-night-850 px-4 py-2.5">
+					<h2 className="font-display text-sm font-bold uppercase tracking-widest text-fog-300">
+						{title}
+					</h2>
+					<button
+						type="button"
+						onClick={onClose}
+						className="text-fog-500 hover:text-fog-100"
+						aria-label="Close"
+					>
+						✕
+					</button>
+				</div>
+				<div className="p-4">{children}</div>
+			</div>
+		</div>
+	);
+}
 
 export function PageHeader({
 	kicker,
