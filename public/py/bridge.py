@@ -172,6 +172,25 @@ def dispatch(action_json):
             bracket = _build(action["format"], action["participants"], action.get("options", {}))
             return _ok(bracket)
 
+        if op == "bye_options":
+            # The bye configurations a field of `count` players supports, for the UI to offer.
+            options = pb.allowable_bye_options(int(action["count"]))
+            return json.dumps(
+                {
+                    "ok": True,
+                    "options": [
+                        {
+                            "rounds": o.rounds,
+                            "doubles": o.doubles,
+                            "singles": o.singles,
+                            "label": o.label(),
+                            "bye_rounds": {str(k): v for k, v in o.to_bye_rounds().items()},
+                        }
+                        for o in options
+                    ],
+                }
+            )
+
         # Pool-level lifecycle ops carry the whole PoolsBracket; the individual pools and the
         # elimination bracket are played with the ordinary report/unwind ops below.
         if op in ("draft_pools", "reseed_pools", "publish_bracket"):

@@ -34,3 +34,6 @@ next-env.d.ts
 # Python bytecode (bridge.py is loaded as source)
 __pycache__/
 *.pyc
+
+# next-on-pages build output
+.vercel/

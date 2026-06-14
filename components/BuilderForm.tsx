@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePyodide } from '@/components/PyodideProvider';
 import {
 	FORMATS,
 	MAX_PARTICIPANTS,
@@ -312,6 +313,14 @@ function Toggle({
 	);
 }
 
+interface ByeOption {
+	rounds: number;
+	doubles: number;
+	singles: number;
+	label: string;
+	bye_rounds: Record<string, number>;
+}
+
 function ByeConfig({
 	value,
 	count,
@@ -321,7 +330,9 @@ function ByeConfig({
 	count: number;
 	setOption: <K extends keyof BuilderState['options']>(k: K, v: BuilderState['options'][K]) => void;
 }) {
+	const { engine } = usePyodide();
 	const [open, setOpen] = useState(false);
+	const [options, setOptions] = useState<ByeOption[] | null>(null);
 	const custom = value !== null;
 	const map = value ?? standardByeRounds(count);
 	const maxByes = Math.max(1, Math.ceil(Math.log2(Math.max(2, count))));
@@ -335,6 +346,21 @@ function ByeConfig({
 	function setAll(fn: (seed: number) => number) {
 		const next: Record<number, number> = {};
 		for (let s = 1; s <= count; s++) next[s] = fn(s);
+		setOption('bye_rounds', next);
+	}
+
+	// Ask the engine which bye configurations this field size supports (dispatch is synchronous).
+	function loadOptions() {
+		if (!engine) return;
+		const res = engine.dispatch({ op: 'bye_options', count }) as
+			| { ok: true; options: ByeOption[] }
+			| { ok: false; error: string };
+		setOptions(res.ok ? res.options : []);
+	}
+
+	function applyOption(opt: ByeOption) {
+		const next: Record<number, number> = {};
+		for (let s = 1; s <= count; s++) next[s] = opt.bye_rounds[String(s)] ?? 0;
 		setOption('bye_rounds', next);
 	}
 
@@ -402,9 +428,39 @@ function ByeConfig({
 								))}
 							</div>
 							<p className="mt-2 text-[0.7rem] text-fog-500">
-								Seed N plays its first match in round (byes + 1). Invalid combinations are rejected on
-								Generate.
+								Seed N plays its first match in round (byes + 1). Set only the byes you care about —
+								the engine fills in the rest on Generate and reports what it added.
 							</p>
+
+							{/* Allowable setups for this field size, straight from the engine. */}
+							<div className="mt-2 border-t border-night-800 pt-2">
+								<button
+									type="button"
+									className="rounded border border-night-600 px-2 py-0.5 text-[0.7rem] text-fog-300 hover:border-court-400 hover:text-court-300 disabled:opacity-40"
+									disabled={!engine}
+									onClick={loadOptions}
+								>
+									{options ? 'Refresh suggested setups' : 'Suggest setups'}
+								</button>
+								{options && options.length === 0 && (
+									<p className="mt-1.5 text-[0.7rem] text-fog-500">No bye setups for this field size.</p>
+								)}
+								{options && options.length > 0 && (
+									<div className="mt-1.5 flex max-h-40 flex-col gap-1 overflow-y-auto pr-1">
+										{options.map((opt, i) => (
+											<button
+												key={i}
+												type="button"
+												onClick={() => applyOption(opt)}
+												className="flex items-center justify-between rounded border border-night-700 px-2 py-1 text-left text-[0.7rem] text-fog-300 hover:border-court-400 hover:text-court-200"
+											>
+												<span>{opt.label}</span>
+												<span className="ml-2 shrink-0 font-mono text-fog-500">{opt.rounds} rds</span>
+											</button>
+										))}
+									</div>
+								)}
+							</div>
 						</>
 					)}
 				</div>

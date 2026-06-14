@@ -240,6 +240,8 @@ export function BracketStudio() {
 							byId={byId}
 						/>
 
+						<ByesAddedNote config={bundle.bracket.config} />
+
 						<Panel className="p-4">
 							<BracketCanvas
 								bracket={bundle.bracket}
@@ -369,6 +371,20 @@ function EngineStatus({
 		<Panel className="p-4">
 			<Spinner label={stage ? STAGE_LABEL[stage as keyof typeof STAGE_LABEL] : 'Loading…'} />
 		</Panel>
+	);
+}
+
+function ByesAddedNote({ config }: { config: Record<string, unknown> }) {
+	const added = config.bye_rounds_added as Record<string, number> | undefined;
+	if (!added || Object.keys(added).length === 0) return null;
+	const seeds = Object.keys(added)
+		.map(Number)
+		.sort((a, b) => a - b);
+	const detail = seeds.map((s) => `seed ${s} +${added[String(s)]}`).join(', ');
+	return (
+		<div className="rounded-lg border border-amber-700/60 bg-amber-700/10 px-4 py-2.5 text-xs text-amber-200">
+			The engine added byes to complete the bracket: {detail}.
+		</div>
 	);
 }
 
