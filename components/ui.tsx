@@ -82,6 +82,36 @@ export function PanelHeader({ title, action }: { title: string; action?: ReactNo
 	);
 }
 
+export function Tabs<T extends string>({
+	tabs,
+	active,
+	onChange
+}: {
+	tabs: { id: T; label: string; badge?: ReactNode }[];
+	active: T;
+	onChange: (id: T) => void;
+}) {
+	return (
+		<div className="flex gap-1 border-b border-night-700">
+			{tabs.map((t) => (
+				<button
+					key={t.id}
+					type="button"
+					onClick={() => onChange(t.id)}
+					className={`-mb-px flex items-center gap-1.5 border-b-2 px-3 py-1.5 font-display text-xs font-semibold uppercase tracking-wider transition-colors ${
+						active === t.id
+							? 'border-court-500 text-court-200'
+							: 'border-transparent text-fog-500 hover:text-fog-300'
+					}`}
+				>
+					{t.label}
+					{t.badge}
+				</button>
+			))}
+		</div>
+	);
+}
+
 export function Spinner({ label = 'Loading…' }: { label?: string }) {
 	return (
 		<div className="flex flex-col items-center justify-center gap-3 py-12 text-fog-500" role="status">

@@ -168,7 +168,10 @@ def dispatch(action_json):
 
         if op == "create":
             if action["format"] == "pools":
-                return _ok_pools(_build_pools(action["participants"], action.get("options", {})))
+                pools = _build_pools(action["participants"], action.get("options", {}))
+                # Return a preliminary bracket from the start so the TO sees where each pool
+                # finisher will land; it's rebuilt for real (draft_pools) once pools complete.
+                return _ok_pools(pb.preview_pools_bracket(pools))
             bracket = _build(action["format"], action["participants"], action.get("options", {}))
             return _ok(bracket)
 
@@ -210,10 +213,12 @@ def dispatch(action_json):
 
         # Pool-level lifecycle ops carry the whole PoolsBracket; the individual pools and the
         # elimination bracket are played with the ordinary report/unwind ops below.
-        if op in ("draft_pools", "reseed_pools", "publish_bracket"):
+        if op in ("draft_pools", "reseed_pools", "publish_bracket", "preview_pools"):
             pools = _pools_from_dict(action["pools_bracket"])
             if op == "publish_bracket":
                 pools = pb.publish_bracket(pools)
+            elif op == "preview_pools":
+                pools = pb.preview_pools_bracket(pools)
             else:
                 pools = pb.draft_pools_to_bracket(pools, new_seed_order=action.get("new_seed_order"))
             return _ok_pools(pools)

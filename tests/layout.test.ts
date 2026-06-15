@@ -121,3 +121,38 @@ describe('regression: 24-player custom byes (screenshot case)', () => {
 		expect(y1 < mid).not.toBe(y2 < mid);
 	});
 });
+
+// The pools "preliminary bracket" (preview) is a real elimination bracket of origin placeholders,
+// rendered by the same canvas — so it must satisfy the same layout invariants.
+describe.each(
+	loadFixtures()
+		.filter((f) => f.result.pools)
+		.map((f) => [f.name, f.result.pools!.elimination] as const)
+)('layout: %s (pools preview elimination)', (_name, elim: Bracket) => {
+	const rendered = elim.matches.filter((m) => m.status !== 'bye');
+	const sides = layoutBracket(elim);
+	const positioned = new Map<number, { x: number; y: number }>();
+	for (const s of sides) for (const [id, p] of s.positions) positioned.set(id, p);
+
+	it('positions every rendered match and never overlaps', () => {
+		expect(positioned.size).toBe(rendered.length);
+		for (const s of sides) {
+			const byX = new Map<number, number[]>();
+			for (const p of s.positions.values()) {
+				const arr = byX.get(p.x) ?? [];
+				arr.push(p.y);
+				byX.set(p.x, arr);
+			}
+			for (const ys of byX.values()) {
+				ys.sort((a, b) => a - b);
+				for (let i = 1; i < ys.length; i++) expect(ys[i] - ys[i - 1]).toBeGreaterThanOrEqual(CARD_HEIGHT - EPS);
+			}
+		}
+	});
+
+	it('fills slots with origin placeholders (negative id + origin stats)', () => {
+		const placeholders = elim.participants.filter((p) => p.id < 0);
+		expect(placeholders.length).toBeGreaterThan(0);
+		for (const p of placeholders) expect(p.stats).toHaveProperty('origin_pool');
+	});
+});
