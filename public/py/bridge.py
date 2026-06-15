@@ -172,6 +172,23 @@ def dispatch(action_json):
             bracket = _build(action["format"], action["participants"], action.get("options", {}))
             return _ok(bracket)
 
+        if op == "complete_byes":
+            # Live-validate a requested bye partition: the engine fills the minimal extra byes (or
+            # raises), so the divider editor can show validity + what it would add without a build.
+            n = int(action["count"])
+            requested = {
+                int(k): int(v) for k, v in (action.get("bye_rounds") or {}).items() if int(v) > 0
+            }
+            comp = pb.complete_bye_rounds(n, requested)
+            return json.dumps(
+                {
+                    "ok": True,
+                    "completed": {str(k): v for k, v in comp.completed.items()},
+                    "added": {str(k): v for k, v in comp.added.items()},
+                    "rounds": comp.rounds,
+                }
+            )
+
         if op == "bye_options":
             # The bye configurations a field of `count` players supports, for the UI to offer.
             options = pb.allowable_bye_options(int(action["count"]))

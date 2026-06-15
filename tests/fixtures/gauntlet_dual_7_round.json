@@ -1,0 +1,256 @@
+{
+  "action": {
+    "format": "gauntlet",
+    "op": "create",
+    "options": {
+      "choice_scope": "round",
+      "opponent_choice": true,
+      "style": "dual"
+    },
+    "participants": [
+      {
+        "id": 1,
+        "name": "Seed 1",
+        "seed": 1
+      },
+      {
+        "id": 2,
+        "name": "Seed 2",
+        "seed": 2
+      },
+      {
+        "id": 3,
+        "name": "Seed 3",
+        "seed": 3
+      },
+      {
+        "id": 4,
+        "name": "Seed 4",
+        "seed": 4
+      },
+      {
+        "id": 5,
+        "name": "Seed 5",
+        "seed": 5
+      },
+      {
+        "id": 6,
+        "name": "Seed 6",
+        "seed": 6
+      },
+      {
+        "id": 7,
+        "name": "Seed 7",
+        "seed": 7
+      }
+    ]
+  },
+  "name": "gauntlet_dual_7_round",
+  "result": {
+    "bracket": {
+      "config": {
+        "choice_scope": "round",
+        "opponent_choice": true,
+        "style": "dual"
+      },
+      "format": "gauntlet",
+      "matches": [
+        {
+          "advancement_type": null,
+          "best_of": 1,
+          "bracket_side": "winners",
+          "id": 1,
+          "loser_id": null,
+          "metadata": {},
+          "next_loser_match_id": null,
+          "next_winner_match_id": 2,
+          "participant1_id": 7,
+          "participant2_id": 6,
+          "round_number": 1,
+          "status": "ready",
+          "winner_id": null
+        },
+        {
+          "advancement_type": null,
+          "best_of": 1,
+          "bracket_side": "winners",
+          "id": 2,
+          "loser_id": null,
+          "metadata": {
+            "choice_other_match": 3,
+            "gauntlet_role": "chooser"
+          },
+          "next_loser_match_id": null,
+          "next_winner_match_id": 4,
+          "participant1_id": 3,
+          "participant2_id": null,
+          "round_number": 2,
+          "status": "pending",
+          "winner_id": null
+        },
+        {
+          "advancement_type": null,
+          "best_of": 1,
+          "bracket_side": "winners",
+          "id": 3,
+          "loser_id": null,
+          "metadata": {
+            "gauntlet_role": "other"
+          },
+          "next_loser_match_id": null,
+          "next_winner_match_id": 5,
+          "participant1_id": 4,
+          "participant2_id": 5,
+          "round_number": 2,
+          "status": "pending",
+          "winner_id": null
+        },
+        {
+          "advancement_type": null,
+          "best_of": 1,
+          "bracket_side": "winners",
+          "id": 4,
+          "loser_id": null,
+          "metadata": {
+            "choice_other_match": 5,
+            "gauntlet_role": "chooser"
+          },
+          "next_loser_match_id": null,
+          "next_winner_match_id": 6,
+          "participant1_id": 1,
+          "participant2_id": null,
+          "round_number": 3,
+          "status": "pending",
+          "winner_id": null
+        },
+        {
+          "advancement_type": null,
+          "best_of": 1,
+          "bracket_side": "winners",
+          "id": 5,
+          "loser_id": null,
+          "metadata": {
+            "gauntlet_role": "other"
+          },
+          "next_loser_match_id": null,
+          "next_winner_match_id": 6,
+          "participant1_id": 2,
+          "participant2_id": null,
+          "round_number": 3,
+          "status": "pending",
+          "winner_id": null
+        },
+        {
+          "advancement_type": null,
+          "best_of": 1,
+          "bracket_side": "winners",
+          "id": 6,
+          "loser_id": null,
+          "metadata": {},
+          "next_loser_match_id": null,
+          "next_winner_match_id": null,
+          "participant1_id": null,
+          "participant2_id": null,
+          "round_number": 4,
+          "status": "pending",
+          "winner_id": null
+        }
+      ],
+      "participants": [
+        {
+          "id": 1,
+          "name": "Seed 1",
+          "seed": 1,
+          "stats": {}
+        },
+        {
+          "id": 2,
+          "name": "Seed 2",
+          "seed": 2,
+          "stats": {}
+        },
+        {
+          "id": 3,
+          "name": "Seed 3",
+          "seed": 3,
+          "stats": {}
+        },
+        {
+          "id": 4,
+          "name": "Seed 4",
+          "seed": 4,
+          "stats": {}
+        },
+        {
+          "id": 5,
+          "name": "Seed 5",
+          "seed": 5,
+          "stats": {}
+        },
+        {
+          "id": 6,
+          "name": "Seed 6",
+          "seed": 6,
+          "stats": {}
+        },
+        {
+          "id": 7,
+          "name": "Seed 7",
+          "seed": 7,
+          "stats": {}
+        }
+      ],
+      "rounds": [
+        {
+          "best_of": null,
+          "bracket_side": "winners",
+          "match_ids": [
+            1
+          ],
+          "name": "Round 1",
+          "number": 1
+        },
+        {
+          "best_of": null,
+          "bracket_side": "winners",
+          "match_ids": [
+            2,
+            3
+          ],
+          "name": "Quarterfinals",
+          "number": 2
+        },
+        {
+          "best_of": null,
+          "bracket_side": "winners",
+          "match_ids": [
+            4,
+            5
+          ],
+          "name": "Semifinals",
+          "number": 3
+        },
+        {
+          "best_of": null,
+          "bracket_side": "winners",
+          "match_ids": [
+            6
+          ],
+          "name": "Final",
+          "number": 4
+        }
+      ],
+      "state": "published"
+    },
+    "ok": true,
+    "query": {
+      "is_complete": false,
+      "placements": [],
+      "ready_match_ids": [
+        1
+      ],
+      "standings": [],
+      "winner": null
+    }
+  }
+}

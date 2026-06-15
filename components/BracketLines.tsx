@@ -2,8 +2,9 @@
 
 // Elbow connector lines between a match and the matches that feed it (spec §7). One SVG covers
 // the whole side. Lines route from the centre-right of each feeder to the centre-left of its
-// target. Byes are hidden but still connected through their phantom coordinates; connectors
-// touching a NOT_NEEDED match are dimmed to match the dimmed card.
+// target. The layout only emits links between two rendered matches, so a bye (or a seed that
+// enters directly) never gets a connector; connectors touching a NOT_NEEDED match are dimmed
+// to match the dimmed card.
 
 import { CARD_WIDTH, type SideLayout } from '@/lib/layout';
 

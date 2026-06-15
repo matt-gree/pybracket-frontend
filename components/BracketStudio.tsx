@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BracketCanvas } from '@/components/BracketCanvas';
 import { BuilderForm } from '@/components/BuilderForm';
 import { InspectorPanel } from '@/components/InspectorPanel';
@@ -26,7 +26,11 @@ export function BracketStudio() {
 	const [state, setState] = useState<BuilderState>(defaultBuilderState);
 	const [bundle, setBundle] = useState<BracketBundle | null>(null);
 	const [poolsBundle, setPoolsBundle] = useState<PoolsBundle | null>(null);
-	const [busy, setBusy] = useState(false);
+	// Draft auto-generate: regenPending shows the brief "updating" beat after a config change;
+	// staleConfig means the config changed after play began, so we hold off regenerating (which
+	// would discard results) and offer an explicit Regenerate instead.
+	const [regenPending, setRegenPending] = useState(false);
+	const [staleConfig, setStaleConfig] = useState(false);
 	const [runtimeError, setRuntimeError] = useState<string | null>(null);
 	const [detailId, setDetailId] = useState<number | null>(null);
 
@@ -46,11 +50,12 @@ export function BracketStudio() {
 		return true;
 	}, []);
 
-	const handleGenerate = useCallback(() => {
+	// Build (or rebuild) the bracket from the current config, discarding any results in progress.
+	const regenerate = useCallback(() => {
 		if (!engine) return;
-		setBusy(true);
+		setRegenPending(false);
+		setStaleConfig(false);
 		const result = engine.dispatch(buildCreateAction(state));
-		setBusy(false);
 		// Pools return a composite shape; everything else is a single bracket.
 		if (isPoolsResult(result)) {
 			setRuntimeError(null);
@@ -61,6 +66,29 @@ export function BracketStudio() {
 		setPoolsBundle(null);
 		apply(result);
 	}, [engine, state, apply]);
+
+	// Latest bundles read through refs so the debounced effect can check play-state without
+	// re-firing whenever a result is reported (only a config change should trigger a redraft).
+	const bundleRef = useRef(bundle);
+	bundleRef.current = bundle;
+	const poolsBundleRef = useRef(poolsBundle);
+	poolsBundleRef.current = poolsBundle;
+
+	// Debounced draft: regenerate ~350ms after the config settles, but only while the current
+	// bracket is untouched. Once play has started, flag the config as stale instead of nuking it.
+	useEffect(() => {
+		if (!engine) return;
+		setRegenPending(true);
+		const handle = setTimeout(() => {
+			if (isDraftPristine(bundleRef.current, poolsBundleRef.current)) {
+				regenerate();
+			} else {
+				setRegenPending(false);
+				setStaleConfig(true);
+			}
+		}, 350);
+		return () => clearTimeout(handle);
+	}, [state, engine, regenerate]);
 
 	const handleReport = useCallback(
 		(matchId: number, winnerId: number, metadata?: Record<string, unknown>) => {
@@ -163,11 +191,11 @@ export function BracketStudio() {
 		[engine, bundle, apply]
 	);
 
+	// Reset = rebuild a fresh draft from the current config, discarding results in progress.
 	const handleReset = useCallback(() => {
-		setBundle(null);
-		setPoolsBundle(null);
 		setRuntimeError(null);
-	}, []);
+		regenerate();
+	}, [regenerate]);
 
 	const ready = engine !== null;
 	const q = bundle?.query;
@@ -185,13 +213,7 @@ export function BracketStudio() {
 			{/* Left: builder */}
 			<div className="flex flex-col gap-4">
 				<Panel className="p-4">
-					<BuilderForm
-						state={state}
-						onChange={setState}
-						onGenerate={handleGenerate}
-						busy={busy}
-						disabled={!ready}
-					/>
+					<BuilderForm state={state} onChange={setState} />
 				</Panel>
 				<EngineStatus ready={ready} stage={stage} loadError={loadError} onRetry={retry} />
 			</div>
@@ -204,11 +226,23 @@ export function BracketStudio() {
 					</div>
 				)}
 
+				{staleConfig && (bundle || poolsBundle) && (
+					<div className="flex items-center justify-between gap-3 rounded-lg border border-amber-700/60 bg-amber-700/10 px-4 py-2.5 text-xs text-amber-200">
+						<span>Configuration changed after play began — this bracket is out of date.</span>
+						<button type="button" onClick={regenerate} className="btn-primary shrink-0 px-3 py-1 text-xs">
+							Regenerate
+						</button>
+					</div>
+				)}
+				{regenPending && !staleConfig && (
+					<div className="px-1 text-xs text-fog-500">Updating draft…</div>
+				)}
+
 				{poolsBundle && engine ? (
 					<>
 						<div className="flex items-center justify-end">
 							<button type="button" onClick={handleReset} className="btn-secondary px-3 py-1 text-xs">
-								Clear
+								Reset
 							</button>
 						</div>
 						<PoolsView
@@ -221,10 +255,10 @@ export function BracketStudio() {
 				) : !bundle ? (
 					<Panel>
 						<EmptyState
-							title={ready ? 'No bracket yet' : 'Starting the engine'}
+							title={ready ? 'Building your bracket…' : 'Starting the engine'}
 							detail={
 								ready
-									? 'Pick a format and participant count on the left, then Generate to see how pybracket builds it.'
+									? 'Generating a live draft from your settings. Adjust the options to rebuild it.'
 									: 'The Python runtime is loading. This happens once per visit.'
 							}
 						/>
@@ -329,8 +363,13 @@ function ResultToolbar({
 				>
 					Auto · random
 				</button>
-				<button type="button" onClick={onReset} className="btn-secondary px-3 py-1 text-xs">
-					Clear
+				<button
+					type="button"
+					onClick={onReset}
+					className="btn-secondary px-3 py-1 text-xs"
+					title="Discard results and rebuild a fresh draft from the current settings"
+				>
+					Reset
 				</button>
 			</div>
 		</div>
@@ -386,6 +425,19 @@ function ByesAddedNote({ config }: { config: Record<string, unknown> }) {
 			The engine added byes to complete the bracket: {detail}.
 		</div>
 	);
+}
+
+// A draft is "pristine" until a real result is reported (a match becomes completed). Byes are
+// auto-advanced by the library (status 'bye', never 'completed'), so they don't count as play.
+function isDraftPristine(bundle: BracketBundle | null, poolsBundle: PoolsBundle | null): boolean {
+	if (poolsBundle) {
+		const played =
+			poolsBundle.pools.pools.some((p) => p.matches.some((m) => m.status === 'completed')) ||
+			poolsBundle.pools.elimination.matches.some((m) => m.status === 'completed');
+		return !played;
+	}
+	if (bundle) return !bundle.bracket.matches.some((m) => m.status === 'completed');
+	return true;
 }
 
 function pickWinner(

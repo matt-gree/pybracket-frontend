@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ByeDividerEditor } from '@/components/ByeDividerEditor';
 import { usePyodide } from '@/components/PyodideProvider';
 import {
 	FORMATS,
@@ -17,12 +18,9 @@ import type { BracketFormat } from '@/lib/types';
 interface Props {
 	state: BuilderState;
 	onChange: (next: BuilderState) => void;
-	onGenerate: () => void;
-	busy: boolean;
-	disabled: boolean;
 }
 
-export function BuilderForm({ state, onChange, onGenerate, busy, disabled }: Props) {
+export function BuilderForm({ state, onChange }: Props) {
 	const [editNames, setEditNames] = useState(false);
 	const o = state.options;
 
@@ -138,14 +136,6 @@ export function BuilderForm({ state, onChange, onGenerate, busy, disabled }: Pro
 				participantCount={state.participantCount}
 			/>
 
-			<button
-				type="button"
-				onClick={onGenerate}
-				disabled={disabled || busy}
-				className="btn-primary w-full"
-			>
-				{busy ? 'Generating…' : 'Generate bracket'}
-			</button>
 		</div>
 	);
 }
@@ -335,19 +325,6 @@ function ByeConfig({
 	const [options, setOptions] = useState<ByeOption[] | null>(null);
 	const custom = value !== null;
 	const map = value ?? standardByeRounds(count);
-	const maxByes = Math.max(1, Math.ceil(Math.log2(Math.max(2, count))));
-
-	function setSeed(seed: number, byes: number) {
-		const next = { ...map, [seed]: Math.max(0, Math.min(maxByes, byes || 0)) };
-		setOption('bye_rounds', next);
-	}
-
-	// Set every seed at once from a seed -> byes function (one update, no stale-closure chaining).
-	function setAll(fn: (seed: number) => number) {
-		const next: Record<number, number> = {};
-		for (let s = 1; s <= count; s++) next[s] = fn(s);
-		setOption('bye_rounds', next);
-	}
 
 	// Ask the engine which bye configurations this field size supports (dispatch is synchronous).
 	function loadOptions() {
@@ -388,52 +365,22 @@ function ByeConfig({
 
 					{custom && (
 						<>
-							<div className="mt-2 flex flex-wrap gap-1.5">
-								<button type="button" className="rounded border border-night-600 px-2 py-0.5 text-[0.7rem] text-fog-300 hover:border-court-400 hover:text-court-300" onClick={() => setAll(() => 0)}>
-									All 0
-								</button>
+							<ByeDividerEditor
+								count={count}
+								value={map}
+								setByeRounds={(m) => setOption('bye_rounds', m)}
+								engine={engine}
+							/>
+
+							{/* Allowable setups for this field size, straight from the engine. */}
+							<div className="mt-2 border-t border-night-800 pt-2">
 								<button
 									type="button"
-									className="rounded border border-night-600 px-2 py-0.5 text-[0.7rem] text-fog-300 hover:border-court-400 hover:text-court-300"
+									className="mr-1.5 rounded border border-night-600 px-2 py-0.5 text-[0.7rem] text-fog-300 hover:border-court-400 hover:text-court-300"
 									onClick={() => setOption('bye_rounds', standardByeRounds(count))}
 								>
 									Reset to standard
 								</button>
-								<button
-									type="button"
-									className="rounded border border-night-600 px-2 py-0.5 text-[0.7rem] text-fog-300 hover:border-court-400 hover:text-court-300"
-									onClick={() => {
-										const quarter = Math.max(1, Math.floor(count / 4));
-										setAll((s) => (s <= quarter ? 2 : s <= quarter * 2 ? 1 : 0));
-									}}
-									title="Top quarter double bye, next quarter single bye"
-								>
-									Tiered
-								</button>
-							</div>
-
-							<div className="mt-2 grid max-h-48 grid-cols-2 gap-1.5 overflow-y-auto pr-1">
-								{Array.from({ length: count }, (_, i) => i + 1).map((seed) => (
-									<label key={seed} className="flex items-center gap-2">
-										<span className="w-6 shrink-0 text-right font-mono text-xs text-fog-500">{seed}</span>
-										<input
-											type="number"
-											min={0}
-											max={maxByes}
-											value={map[seed] ?? 0}
-											onChange={(e) => setSeed(seed, Number(e.target.value))}
-											className="input w-full py-1 text-xs"
-										/>
-									</label>
-								))}
-							</div>
-							<p className="mt-2 text-[0.7rem] text-fog-500">
-								Seed N plays its first match in round (byes + 1). Set only the byes you care about —
-								the engine fills in the rest on Generate and reports what it added.
-							</p>
-
-							{/* Allowable setups for this field size, straight from the engine. */}
-							<div className="mt-2 border-t border-night-800 pt-2">
 								<button
 									type="button"
 									className="rounded border border-night-600 px-2 py-0.5 text-[0.7rem] text-fog-300 hover:border-court-400 hover:text-court-300 disabled:opacity-40"

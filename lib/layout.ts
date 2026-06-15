@@ -1,8 +1,14 @@
-// Coordinate-based bracket layout (spec §6–§9). Elimination-style formats are laid out as a
-// tree: round-1 matches sit at evenly spaced Y positions and every later match is centred on
-// the matches that feed it. Byes are kept in the layout (so spacing and connectors are
-// undisturbed) even though their cards are not rendered. Round-robin and Swiss are not laid
-// out here — they keep the simple equal-spacing column flow.
+// Coordinate-based bracket layout (spec §6–§9). Elimination-style formats are laid out by
+// walking the *rendered* tree the library already emits: sibling subtrees occupy contiguous
+// id ranges with seeds 1/2 in opposite halves (the library's render-ready guarantee), so we
+// place leaves by an in-order DFS and centre every later match on the matches that feed it.
+//
+// Byes never render. The library models them two ways and this layout handles both without
+// special-casing: explicit `status='bye'` matches (default / protected_seeds) and implicit
+// byes (`bye_rounds`, where a seed enters a later round with no feeder match). In both cases
+// a bye contributes no node and no connector — only matches that actually render are laid out
+// and only edges between two rendered matches become connector lines. Round-robin and Swiss
+// are not laid out here — they keep the simple equal-spacing column flow.
 
 import type { Bracket, BracketSide, Match } from './types';
 
@@ -45,10 +51,15 @@ export function isScheduleFormat(format: Bracket['format']): boolean {
 }
 
 /** Lay out one bracket side as a coordinate tree. Returns positions keyed by match id. */
-function layoutSide(side: BracketSide, matches: Match[], roundName: Map<string, string>): SideLayout {
+function layoutSide(side: BracketSide, allMatches: Match[], roundName: Map<string, string>): SideLayout {
+	// Only matches that actually render: byes are auto-advanced by the library and never shown.
+	const matches = allMatches.filter((m) => m.status !== 'bye');
 	const idSet = new Set(matches.map((m) => m.id));
+	const byId = new Map<number, Match>();
+	for (const m of matches) byId.set(m.id, m);
 
-	// Winner-advancement feeders within this side define the tree spine.
+	// Winner-advancement feeders within this side, restricted to rendered matches, define the
+	// tree spine. A bye (or a seed entering directly) feeds no edge — it just isn't here.
 	const feedersOf = new Map<number, number[]>();
 	for (const m of matches) {
 		const target = m.next_winner_match_id;
@@ -59,36 +70,44 @@ function layoutSide(side: BracketSide, matches: Match[], roundName: Map<string, 
 		}
 	}
 
-	const byRound = new Map<number, Match[]>();
-	for (const m of matches) {
-		const list = byRound.get(m.round_number);
-		if (list) list.push(m);
-		else byRound.set(m.round_number, [m]);
-	}
-	const rounds = [...byRound.keys()].sort((a, b) => a - b);
-	const minRound = rounds[0];
+	const rounds = [...new Set(matches.map((m) => m.round_number))].sort((a, b) => a - b);
+	const minRound = rounds[0] ?? 0;
 
 	const positions = new Map<number, MatchPos>();
 	let nextLeafSlot = 0;
 
-	for (const r of rounds) {
-		const roundMatches = byRound.get(r)!.sort((a, b) => a.id - b.id);
-		for (const m of roundMatches) {
-			const feeders = (feedersOf.get(m.id) ?? []).filter((id) => positions.has(id));
-			const x = (r - minRound) * ROUND_WIDTH;
-			let y: number;
-			if (feeders.length === 0) {
-				// A leaf (round 1, or a match entered only by direct seeds): take the next slot.
-				y = SIDE_PADDING_Y + nextLeafSlot * SLOT_HEIGHT + SLOT_HEIGHT / 2;
-				nextLeafSlot++;
-			} else {
-				// Centre on the feeders — phantom (bye) feeders contribute their slot too.
-				const ys = feeders.map((id) => positions.get(id)!.y);
-				y = ys.reduce((a, b) => a + b, 0) / ys.length;
-			}
-			positions.set(m.id, { x, y });
+	// Place a match and everything that feeds it, depth-first. Feeders are sorted by id because
+	// the library emits sibling subtrees as contiguous id ranges (lower id == upper subtree), so
+	// an in-order walk assigns leaf slots top-to-bottom. A leaf (no rendered feeders — a round-1
+	// match, or a seed that byes straight into a later round) takes the next vertical slot; an
+	// internal match centres on the feeders it sits between (one feeder = it sits at that height,
+	// the direct-entry side simply has no incoming line).
+	const place = (id: number): number => {
+		const existing = positions.get(id);
+		if (existing) return existing.y;
+		const m = byId.get(id)!;
+		const x = (m.round_number - minRound) * ROUND_WIDTH;
+		const feeders = (feedersOf.get(id) ?? []).slice().sort((a, b) => a - b);
+		let y: number;
+		if (feeders.length === 0) {
+			y = SIDE_PADDING_Y + nextLeafSlot * SLOT_HEIGHT + SLOT_HEIGHT / 2;
+			nextLeafSlot++;
+		} else {
+			const ys = feeders.map((f) => place(f));
+			y = ys.reduce((a, b) => a + b, 0) / ys.length;
 		}
-	}
+		positions.set(id, { x, y });
+		return y;
+	};
+
+	// Roots (the final, or any match whose winner-target leaves this side) first, in id order so
+	// the leaf slots run top-to-bottom; then defensively place anything the walk didn't reach.
+	const roots = matches
+		.filter((m) => m.next_winner_match_id == null || !idSet.has(m.next_winner_match_id))
+		.map((m) => m.id)
+		.sort((a, b) => a - b);
+	for (const r of roots) place(r);
+	for (const m of [...matches].sort((a, b) => a.id - b.id)) if (!positions.has(m.id)) place(m.id);
 
 	const links: FeederLink[] = [];
 	for (const [to, froms] of feedersOf) {
@@ -120,7 +139,8 @@ export function layoutBracket(bracket: Bracket): SideLayout[] {
 	const out: SideLayout[] = [];
 	for (const side of SIDE_ORDER) {
 		const sideMatches = bracket.matches.filter((m) => m.bracket_side === side);
-		if (sideMatches.length === 0) continue;
+		// Skip a side that has no rendered matches (e.g. nothing but byes).
+		if (!sideMatches.some((m) => m.status !== 'bye')) continue;
 		out.push(layoutSide(side, sideMatches, roundName));
 	}
 	return out;
