@@ -25,7 +25,9 @@ export function BuilderForm({ state, onChange }: Props) {
 	const o = state.options;
 
 	function setFormat(format: BracketFormat) {
-		onChange({ ...state, format });
+		// A custom bye map is format-specific (single elim allows deeper byes than double elim),
+		// so switching formats falls back to standard byes.
+		onChange({ ...state, format, options: { ...state.options, bye_rounds: null } });
 	}
 
 	function setCount(countRaw: number) {
@@ -191,7 +193,16 @@ function FormatOptions({
 						checked={o.grand_final_reset}
 						onChange={(v) => setOption('grand_final_reset', v)}
 					/>
-					<ProtectedSeeds value={o.protected_seeds} choices={protectedChoices} setOption={setOption} />
+					{!o.bye_rounds && (
+						<ProtectedSeeds value={o.protected_seeds} choices={protectedChoices} setOption={setOption} />
+					)}
+					<ByeConfig
+						value={o.bye_rounds}
+						count={participantCount}
+						setOption={setOption}
+						presetsOnly
+						maxLevel={2}
+					/>
 				</>
 			)}
 
@@ -314,11 +325,17 @@ interface ByeOption {
 function ByeConfig({
 	value,
 	count,
-	setOption
+	setOption,
+	presetsOnly = false,
+	maxLevel
 }: {
 	value: Record<number, number> | null;
 	count: number;
 	setOption: <K extends keyof BuilderState['options']>(k: K, v: BuilderState['options'][K]) => void;
+	// Double elim only supports a curated set of clean profiles (no free-form divider editor,
+	// capped at `maxLevel` byes), so the losers bracket stays a shape we model with confidence.
+	presetsOnly?: boolean;
+	maxLevel?: number;
 }) {
 	const { engine } = usePyodide();
 	const [open, setOpen] = useState(false);
@@ -329,9 +346,11 @@ function ByeConfig({
 	// Ask the engine which bye configurations this field size supports (dispatch is synchronous).
 	function loadOptions() {
 		if (!engine) return;
-		const res = engine.dispatch({ op: 'bye_options', count }) as
-			| { ok: true; options: ByeOption[] }
-			| { ok: false; error: string };
+		const res = engine.dispatch({
+			op: 'bye_options',
+			count,
+			...(maxLevel != null ? { max_bye_level: maxLevel } : {})
+		}) as { ok: true; options: ByeOption[] } | { ok: false; error: string };
 		setOptions(res.ok ? res.options : []);
 	}
 
@@ -339,6 +358,12 @@ function ByeConfig({
 		const next: Record<number, number> = {};
 		for (let s = 1; s <= count; s++) next[s] = opt.bye_rounds[String(s)] ?? 0;
 		setOption('bye_rounds', next);
+	}
+
+	function toggleCustom(v: boolean) {
+		setOption('bye_rounds', v ? standardByeRounds(count) : null);
+		// Presets-only mode surfaces the curated list immediately on enable (no extra click).
+		if (v && presetsOnly) loadOptions();
 	}
 
 	return (
@@ -358,26 +383,32 @@ function ByeConfig({
 				<div className="border-t border-night-800 px-3 py-2.5">
 					<Toggle
 						label="Customize byes"
-						hint="Give top seeds multiple rounds of byes. Counts must not increase as seeds get worse."
+						hint={
+							presetsOnly
+								? 'Pick a curated bye setup (up to double byes for the top seeds).'
+								: 'Give top seeds multiple rounds of byes. Counts must not increase as seeds get worse.'
+						}
 						checked={custom}
-						onChange={(v) => setOption('bye_rounds', v ? standardByeRounds(count) : null)}
+						onChange={toggleCustom}
 					/>
 
 					{custom && (
 						<>
-							<ByeDividerEditor
-								count={count}
-								value={map}
-								setByeRounds={(m) => setOption('bye_rounds', m)}
-								engine={engine}
-							/>
+							{!presetsOnly && (
+								<ByeDividerEditor
+									count={count}
+									value={map}
+									setByeRounds={(m) => setOption('bye_rounds', m)}
+									engine={engine}
+								/>
+							)}
 
 							{/* Allowable setups for this field size, straight from the engine. */}
-							<div className="mt-2 border-t border-night-800 pt-2">
+							<div className={presetsOnly ? '' : 'mt-2 border-t border-night-800 pt-2'}>
 								<button
 									type="button"
 									className="mr-1.5 rounded border border-night-600 px-2 py-0.5 text-[0.7rem] text-fog-300 hover:border-court-400 hover:text-court-300"
-									onClick={() => setOption('bye_rounds', standardByeRounds(count))}
+									onClick={() => setOption('bye_rounds', presetsOnly ? null : standardByeRounds(count))}
 								>
 									Reset to standard
 								</button>

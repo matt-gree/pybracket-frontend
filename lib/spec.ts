@@ -172,7 +172,12 @@ export function buildCreateAction(state: BuilderState): CreateAction {
 			};
 			break;
 		case 'double_elim':
-			options = { grand_final_reset: o.grand_final_reset, protected_seeds: o.protected_seeds };
+			options = {
+				grand_final_reset: o.grand_final_reset,
+				// bye_rounds fully determines the structure, so protected_seeds is mutually exclusive.
+				protected_seeds: o.bye_rounds ? 0 : o.protected_seeds,
+				...(o.bye_rounds ? { bye_rounds: o.bye_rounds } : {})
+			};
 			break;
 		case 'round_robin':
 			options = {};

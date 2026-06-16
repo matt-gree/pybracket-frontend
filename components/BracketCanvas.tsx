@@ -8,7 +8,8 @@ import {
 	CARD_WIDTH,
 	ROUND_WIDTH,
 	isScheduleFormat,
-	layoutBracket
+	layoutBracket,
+	renderableMatchIds
 } from '@/lib/layout';
 import type { Bracket, BracketSide, Match, Participant } from '@/lib/types';
 
@@ -19,11 +20,12 @@ interface Props {
 	onChoice: (matchId: number, opponentId: number) => void;
 	onOpenDetail: (matchId: number) => void;
 	draft?: boolean;
+	readOnly?: boolean;
 }
 
 const HEADER_HEIGHT = 28;
 
-export function BracketCanvas({ bracket, readyIds, onReport, onChoice, onOpenDetail, draft = false }: Props) {
+export function BracketCanvas({ bracket, readyIds, onReport, onChoice, onOpenDetail, draft = false, readOnly = false }: Props) {
 	const byId = useMemo<Record<number, Participant>>(() => {
 		const map: Record<number, Participant> = {};
 		for (const p of bracket.participants) map[p.id] = p;
@@ -37,8 +39,11 @@ export function BracketCanvas({ bracket, readyIds, onReport, onChoice, onOpenDet
 	);
 
 	const sides = useMemo(() => layoutBracket(bracket), [bracket]);
+	// Same structural filter the layout uses, so cards match positions exactly (and phantom
+	// losers-bracket byes never appear, even while still 'pending').
+	const renderable = useMemo(() => renderableMatchIds(bracket), [bracket]);
 
-	const cardProps = { byId, readySet, onReport, onChoice, onOpenDetail };
+	const cardProps = { byId, readySet, onReport, onChoice, onOpenDetail, readOnly };
 
 	if (isScheduleFormat(bracket.format)) {
 		return <ScheduleColumns bracket={bracket} {...cardProps} />;
@@ -73,7 +78,7 @@ export function BracketCanvas({ bracket, readyIds, onReport, onChoice, onOpenDet
 							<div className="relative" style={{ width: side.width, height: side.height }}>
 								<BracketLines layout={side} dimmed={dimmed} />
 								{bracket.matches
-									.filter((m) => m.bracket_side === side.side && m.status !== 'bye')
+									.filter((m) => m.bracket_side === side.side && renderable.has(m.id))
 									.map((m) => {
 										const pos = side.positions.get(m.id);
 										if (!pos) return null;
@@ -96,6 +101,7 @@ export function BracketCanvas({ bracket, readyIds, onReport, onChoice, onOpenDet
 													onChoice={onChoice}
 													onOpenDetail={onOpenDetail}
 													draft={draft}
+													readOnly={readOnly}
 												/>
 											</div>
 										);
@@ -116,7 +122,8 @@ function ScheduleColumns({
 	readySet,
 	onReport,
 	onChoice,
-	onOpenDetail
+	onOpenDetail,
+	readOnly
 }: {
 	bracket: Bracket;
 	byId: Record<number, Participant>;
@@ -124,6 +131,7 @@ function ScheduleColumns({
 	onReport: (matchId: number, winnerId: number) => void;
 	onChoice: (matchId: number, opponentId: number) => void;
 	onOpenDetail: (matchId: number) => void;
+	readOnly: boolean;
 }) {
 	const roundName = useMemo(() => {
 		const map = new Map<number, string>();
@@ -153,6 +161,7 @@ function ScheduleColumns({
 										onReport={onReport}
 										onChoice={onChoice}
 										onOpenDetail={onOpenDetail}
+										readOnly={readOnly}
 									/>
 								))}
 						</div>

@@ -4,7 +4,7 @@
 // the regression lock for the reported "melded lines / missing quarterfinal" screenshot.
 
 import { describe, expect, it } from 'vitest';
-import { CARD_HEIGHT, isScheduleFormat, layoutBracket } from '@/lib/layout';
+import { CARD_HEIGHT, isScheduleFormat, layoutBracket, renderableMatchIds } from '@/lib/layout';
 import type { Bracket } from '@/lib/types';
 import { loadFixtures } from './_helpers';
 
@@ -14,7 +14,8 @@ const bracketFixtures = loadFixtures().filter((f) => f.result.bracket);
 describe.each(bracketFixtures.map((f) => [f.name, f.result.bracket!] as const))(
 	'layout: %s',
 	(_name, bracket: Bracket) => {
-		const rendered = bracket.matches.filter((m) => m.status !== 'bye');
+		const renderable = renderableMatchIds(bracket);
+		const rendered = bracket.matches.filter((m) => renderable.has(m.id));
 		const byId = new Map(bracket.matches.map((m) => [m.id, m]));
 
 		// Round-robin / Swiss use the schedule-column flow, not the coordinate tree.
@@ -93,6 +94,22 @@ describe.each(bracketFixtures.map((f) => [f.name, f.result.bracket!] as const))(
 				}
 			}
 		});
+
+		it('each winners/losers side is one connected tree (no orphaned matches)', () => {
+			// A rendered match whose winner advances through hidden bye matches must still link to
+			// the rest of its side: exactly one match has no outgoing feeder edge (the side final).
+			// This locks the byed-double-elim losers bracket that previously fragmented. Exempt the
+			// grand final side (game-1 + reset are separate nodes) and consolation/third-place
+			// matches (fed by losers, so they sit off the winner-advancement tree by design).
+			for (const s of sides) {
+				if (s.side === 'grand_final') continue;
+				const hasOutgoing = new Set(s.links.map((l) => l.from));
+				const sinks = [...s.positions.keys()].filter(
+					(id) => !hasOutgoing.has(id) && !byId.get(id)?.metadata?.consolation
+				);
+				expect(sinks.length, `${s.side} has ${sinks.length} disconnected roots: ${sinks}`).toBe(1);
+			}
+		});
 	}
 );
 
@@ -122,6 +139,32 @@ describe('regression: 24-player custom byes (screenshot case)', () => {
 	});
 });
 
+describe('regression: byed double-elim renders a stable shape as it is played', () => {
+	// The 14-team custom-bye case (3 double + 9 single + 2 play-in) that reshaped its losers
+	// bracket on every reported result. The rendered set must be identical before any play and at
+	// completion — and at completion (all byes resolved) it must equal the plain status!=='bye' set,
+	// which anchors the occupant-count filter to the library's own final view.
+	const unplayed = loadFixtures().find((f) => f.name === 'double_elim_14_custom')?.result.bracket;
+	const complete = loadFixtures().find((f) => f.name === 'double_elim_14_custom_complete')?.result.bracket;
+
+	it('fixtures exist', () => {
+		expect(unplayed, 'run npm run gen-fixtures').toBeDefined();
+		expect(complete, 'run npm run gen-fixtures').toBeDefined();
+	});
+
+	it('renders the same matches unplayed and complete (no phantom losers-bracket cards)', () => {
+		const before = [...renderableMatchIds(unplayed!)].sort((a, b) => a - b);
+		const after = [...renderableMatchIds(complete!)].sort((a, b) => a - b);
+		expect(before).toEqual(after);
+	});
+
+	it('matches the library final view: rendered == non-bye once everything is settled', () => {
+		const rendered = [...renderableMatchIds(complete!)].sort((a, b) => a - b);
+		const nonBye = complete!.matches.filter((m) => m.status !== 'bye').map((m) => m.id).sort((a, b) => a - b);
+		expect(rendered).toEqual(nonBye);
+	});
+});
+
 // The pools "preliminary bracket" (preview) is a real elimination bracket of origin placeholders,
 // rendered by the same canvas — so it must satisfy the same layout invariants.
 describe.each(
@@ -129,7 +172,7 @@ describe.each(
 		.filter((f) => f.result.pools)
 		.map((f) => [f.name, f.result.pools!.elimination] as const)
 )('layout: %s (pools preview elimination)', (_name, elim: Bracket) => {
-	const rendered = elim.matches.filter((m) => m.status !== 'bye');
+	const rendered = elim.matches.filter((m) => renderableMatchIds(elim).has(m.id));
 	const sides = layoutBracket(elim);
 	const positioned = new Map<number, { x: number; y: number }>();
 	for (const s of sides) for (const [id, p] of s.positions) positioned.set(id, p);

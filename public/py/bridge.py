@@ -32,10 +32,16 @@ def _build(fmt, participants, options):
             bye_rounds=bye_rounds or None,
         )
     if fmt == "double_elim":
+        raw_bye_rounds = options.get("bye_rounds")
+        bye_rounds = None
+        if raw_bye_rounds:
+            # JS object keys arrive as strings; the library keys bye_rounds by seed (int).
+            bye_rounds = {int(k): int(v) for k, v in raw_bye_rounds.items() if int(v) > 0}
         return pb.generate_double_elim(
             ps,
             grand_final_reset=bool(options.get("grand_final_reset", True)),
-            protected_seeds=int(options.get("protected_seeds", 0)),
+            protected_seeds=0 if bye_rounds else int(options.get("protected_seeds", 0)),
+            bye_rounds=bye_rounds or None,
         )
     if fmt == "round_robin":
         return pb.generate_round_robin(ps)
@@ -173,6 +179,9 @@ def dispatch(action_json):
                 # finisher will land; it's rebuilt for real (draft_pools) once pools complete.
                 return _ok_pools(pb.preview_pools_bracket(pools))
             bracket = _build(action["format"], action["participants"], action.get("options", {}))
+            # Every freshly generated bracket starts in DRAFT: the organizer tweaks the config
+            # freely and presses "Start tournament" (publish) before any result can be reported.
+            bracket.state = pb.BracketState.DRAFT
             return _ok(bracket)
 
         if op == "complete_byes":
@@ -194,7 +203,10 @@ def dispatch(action_json):
 
         if op == "bye_options":
             # The bye configurations a field of `count` players supports, for the UI to offer.
-            options = pb.allowable_bye_options(int(action["count"]))
+            # `max_bye_level` lets a format cap the depth (double elim only supports <= 2).
+            max_level = action.get("max_bye_level")
+            kwargs = {"max_bye_level": int(max_level)} if max_level is not None else {}
+            options = pb.allowable_bye_options(int(action["count"]), **kwargs)
             return json.dumps(
                 {
                     "ok": True,
@@ -225,6 +237,10 @@ def dispatch(action_json):
 
         bracket = pb.bracket_from_dict(action["bracket"])
 
+        if op == "publish":
+            # Start the tournament: flip the DRAFT bracket to PUBLISHED and re-settle it.
+            return _ok(pb.publish_bracket(bracket))
+
         if op == "report":
             adv = pb.AdvancementType(action.get("advancement_type", "result"))
             bracket = pb.report_result(
@@ -239,6 +255,8 @@ def dispatch(action_json):
         if op == "update_match":
             # Direct per-match edits from the detail modal: best-of and stored score live on the
             # match itself (best_of) and its metadata (the library never reads metadata).
+            if bracket.state is pb.BracketState.DRAFT:
+                raise pb.BracketStateError("Start the tournament before editing matches.")
             match = pb.get_match(bracket, action["match_id"])
             if match is None:
                 raise pb.MatchNotFoundError(f"No match with id {action['match_id']}.")

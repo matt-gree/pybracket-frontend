@@ -16,11 +16,15 @@ interface Props {
 	onOpenDetail: (matchId: number) => void;
 	// DRAFT seeding view: every slot shows TBD and nothing is interactive (spec §2).
 	draft?: boolean;
+	// Pre-start preview: real names are shown, but nothing can be reported until the tournament
+	// is started (the bracket is still in DRAFT state).
+	readOnly?: boolean;
 }
 
-export function MatchCard({ match, byId, ready, onReport, onChoice, onOpenDetail, draft = false }: Props) {
+export function MatchCard({ match, byId, ready, onReport, onChoice, onOpenDetail, draft = false, readOnly = false }: Props) {
 	const notNeeded = match.status === 'not_needed';
-	const choosing = !draft && match.status === 'pending_choice';
+	const inert = notNeeded || readOnly;
+	const choosing = !draft && !readOnly && match.status === 'pending_choice';
 	const choicePool = (match.metadata?.choice_pool as number[] | undefined) ?? [];
 
 	return (
@@ -33,11 +37,11 @@ export function MatchCard({ match, byId, ready, onReport, onChoice, onOpenDetail
 			{/* Left click zone -> detail modal */}
 			<button
 				type="button"
-				disabled={notNeeded}
+				disabled={inert}
 				onClick={() => onOpenDetail(match.id)}
 				title="Match details"
 				className={`group flex w-[22px] shrink-0 items-center justify-center border-r border-night-800 bg-night-850 ${
-					notNeeded ? '' : 'cursor-pointer hover:bg-night-700'
+					inert ? '' : 'cursor-pointer hover:bg-night-700'
 				}`}
 			>
 				<span className="font-mono text-[0.6rem] leading-none text-fog-500 [writing-mode:vertical-rl] rotate-180 group-hover:text-court-300">
@@ -46,9 +50,9 @@ export function MatchCard({ match, byId, ready, onReport, onChoice, onOpenDetail
 			</button>
 
 			<div className="flex min-w-0 flex-1 flex-col justify-center">
-				<Slot match={match} slot={1} byId={byId} ready={ready} notNeeded={notNeeded} draft={draft} onReport={onReport} />
+				<Slot match={match} slot={1} byId={byId} ready={ready} notNeeded={notNeeded} draft={draft} readOnly={readOnly} onReport={onReport} />
 				<div className="border-t border-night-800" />
-				<Slot match={match} slot={2} byId={byId} ready={ready} notNeeded={notNeeded} draft={draft} onReport={onReport} />
+				<Slot match={match} slot={2} byId={byId} ready={ready} notNeeded={notNeeded} draft={draft} readOnly={readOnly} onReport={onReport} />
 
 				{choosing && choicePool.length > 0 && (
 					<div className="border-t border-night-800 px-1.5 py-1">
@@ -81,6 +85,7 @@ function Slot({
 	ready,
 	notNeeded,
 	draft,
+	readOnly,
 	onReport
 }: {
 	match: Match;
@@ -89,13 +94,14 @@ function Slot({
 	ready: boolean;
 	notNeeded: boolean;
 	draft: boolean;
+	readOnly: boolean;
 	onReport: (matchId: number, winnerId: number) => void;
 }) {
 	const pid = slot === 1 ? match.participant1_id : match.participant2_id;
 	const participant = pid != null ? byId[pid] : undefined;
 	const isWinner = !draft && pid != null && match.winner_id === pid;
 	const isLoser = !draft && match.status === 'completed' && pid != null && match.winner_id !== pid;
-	const clickable = !draft && ready && pid != null && match.status === 'ready';
+	const clickable = !draft && !readOnly && ready && pid != null && match.status === 'ready';
 
 	const base = 'flex items-center gap-2 px-2 py-1 leading-tight';
 	const tone = isWinner

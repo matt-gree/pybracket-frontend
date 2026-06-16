@@ -17,7 +17,11 @@ const sibling = resolve(process.env.PYBRACKET_DIR ?? join(root, '..', 'pybracket
 const haveSibling = existsSync(join(sibling, 'pyproject.toml'));
 
 // Modules whose drift most directly affects the studio's rendering and serialization contract.
-const MODULES = ['pybracket/seeding/byes.py', 'pybracket/formats/single_elim.py'];
+const MODULES = [
+	'pybracket/seeding/byes.py',
+	'pybracket/formats/single_elim.py',
+	'pybracket/formats/double_elim.py'
+];
 
 function fromWheel(member: string): string | null {
 	try {

@@ -26,11 +26,11 @@ export function BracketStudio() {
 	const [state, setState] = useState<BuilderState>(defaultBuilderState);
 	const [bundle, setBundle] = useState<BracketBundle | null>(null);
 	const [poolsBundle, setPoolsBundle] = useState<PoolsBundle | null>(null);
-	// Draft auto-generate: regenPending shows the brief "updating" beat after a config change;
-	// staleConfig means the config changed after play began, so we hold off regenerating (which
-	// would discard results) and offer an explicit Regenerate instead.
-	const [regenPending, setRegenPending] = useState(false);
-	const [staleConfig, setStaleConfig] = useState(false);
+	// The config lives in a DRAFT bracket that redrafts as options change — `redrafting` drives a
+	// clean dim/dissolve while the new draft is built. Once the tournament is started (published),
+	// a config change can't silently rebuild; `configChanged` surfaces a Reset prompt instead.
+	const [redrafting, setRedrafting] = useState(false);
+	const [configChanged, setConfigChanged] = useState(false);
 	const [runtimeError, setRuntimeError] = useState<string | null>(null);
 	const [detailId, setDetailId] = useState<number | null>(null);
 
@@ -53,8 +53,8 @@ export function BracketStudio() {
 	// Build (or rebuild) the bracket from the current config, discarding any results in progress.
 	const regenerate = useCallback(() => {
 		if (!engine) return;
-		setRegenPending(false);
-		setStaleConfig(false);
+		setRedrafting(false);
+		setConfigChanged(false);
 		const result = engine.dispatch(buildCreateAction(state));
 		// Pools return a composite shape; everything else is a single bracket.
 		if (isPoolsResult(result)) {
@@ -74,17 +74,25 @@ export function BracketStudio() {
 	const poolsBundleRef = useRef(poolsBundle);
 	poolsBundleRef.current = poolsBundle;
 
-	// Debounced draft: regenerate ~350ms after the config settles, but only while the current
-	// bracket is untouched. Once play has started, flag the config as stale instead of nuking it.
+	// Debounced draft: ~350ms after the config settles, rebuild the DRAFT bracket (dimming the old
+	// one for a clean dissolve). Once the tournament is published, a config change must not nuke
+	// live results — flag it for an explicit Reset instead. Pools keep their own multi-stage flow.
 	useEffect(() => {
 		if (!engine) return;
-		setRegenPending(true);
+		const pools = poolsBundleRef.current;
+		const inDraftPhase = !pools && (!bundleRef.current || bundleRef.current.bracket.state === 'draft');
+		// Only dim when there's an existing draft to dissolve into the new one.
+		if (inDraftPhase && bundleRef.current) setRedrafting(true);
 		const handle = setTimeout(() => {
-			if (isDraftPristine(bundleRef.current, poolsBundleRef.current)) {
+			if (pools) {
+				if (isDraftPristine(null, pools)) regenerate();
+				else setConfigChanged(true);
+				return;
+			}
+			if (!bundleRef.current || bundleRef.current.bracket.state === 'draft') {
 				regenerate();
 			} else {
-				setRegenPending(false);
-				setStaleConfig(true);
+				setConfigChanged(true);
 			}
 		}, 350);
 		return () => clearTimeout(handle);
@@ -191,6 +199,12 @@ export function BracketStudio() {
 		[engine, bundle, apply]
 	);
 
+	// Start the tournament: publish the DRAFT bracket so results can be reported.
+	const handleStart = useCallback(() => {
+		if (!engine || !bundle) return;
+		apply(engine.dispatch({ op: 'publish', bracket: bundle.bracket }));
+	}, [engine, bundle, apply]);
+
 	// Reset = rebuild a fresh draft from the current config, discarding results in progress.
 	const handleReset = useCallback(() => {
 		setRuntimeError(null);
@@ -226,16 +240,13 @@ export function BracketStudio() {
 					</div>
 				)}
 
-				{staleConfig && (bundle || poolsBundle) && (
+				{configChanged && (bundle || poolsBundle) && (
 					<div className="flex items-center justify-between gap-3 rounded-lg border border-amber-700/60 bg-amber-700/10 px-4 py-2.5 text-xs text-amber-200">
-						<span>Configuration changed after play began — this bracket is out of date.</span>
-						<button type="button" onClick={regenerate} className="btn-primary shrink-0 px-3 py-1 text-xs">
-							Regenerate
+						<span>Configuration changed — reset to rebuild the bracket from the new settings.</span>
+						<button type="button" onClick={handleReset} className="btn-primary shrink-0 px-3 py-1 text-xs">
+							Reset
 						</button>
 					</div>
-				)}
-				{regenPending && !staleConfig && (
-					<div className="px-1 text-xs text-fog-500">Updating draft…</div>
 				)}
 
 				{poolsBundle && engine ? (
@@ -270,21 +281,26 @@ export function BracketStudio() {
 							onAutoplay={autoplay}
 							onAdvanceSwiss={handleAdvanceSwiss}
 							onReset={handleReset}
+							onStart={handleStart}
+							draft={bundle.bracket.state === 'draft'}
 							needsSwissAdvance={!!needsSwissAdvance}
 							byId={byId}
 						/>
 
 						<ByesAddedNote config={bundle.bracket.config} />
 
-						<Panel className="p-4">
-							<BracketCanvas
-								bracket={bundle.bracket}
-								readyIds={bundle.query.ready_match_ids}
-								onReport={handleReport}
-								onChoice={handleChoice}
-								onOpenDetail={setDetailId}
-							/>
-						</Panel>
+						<div className={`transition-opacity duration-300 ${redrafting ? 'opacity-40' : 'opacity-100'}`}>
+							<Panel className="p-4">
+								<BracketCanvas
+									bracket={bundle.bracket}
+									readyIds={bundle.query.ready_match_ids}
+									onReport={handleReport}
+									onChoice={handleChoice}
+									onOpenDetail={setDetailId}
+									readOnly={bundle.bracket.state === 'draft'}
+								/>
+							</Panel>
+						</div>
 
 						<div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
 							<Panel>
@@ -319,6 +335,8 @@ function ResultToolbar({
 	onAutoplay,
 	onAdvanceSwiss,
 	onReset,
+	onStart,
+	draft,
 	needsSwissAdvance,
 	byId
 }: {
@@ -326,6 +344,8 @@ function ResultToolbar({
 	onAutoplay: (d: Decide) => void;
 	onAdvanceSwiss: () => void;
 	onReset: () => void;
+	onStart: () => void;
+	draft: boolean;
 	needsSwissAdvance: boolean;
 	byId: Record<number, Participant>;
 }) {
@@ -338,39 +358,52 @@ function ResultToolbar({
 				{query.is_complete && query.winner && (
 					<Badge color="gold">🏆 {query.winner.name}</Badge>
 				)}
-				{needsSwissAdvance && (
+				{!draft && needsSwissAdvance && (
 					<button type="button" onClick={onAdvanceSwiss} className="btn-primary px-3 py-1 text-xs">
 						Advance round →
 					</button>
 				)}
 			</div>
 			<div className="flex flex-wrap items-center gap-2">
-				<button
-					type="button"
-					onClick={() => onAutoplay('seed')}
-					disabled={query.is_complete}
-					className="btn-secondary px-3 py-1 text-xs"
-					title="Play to completion with the higher seed winning every match"
-				>
-					Auto · seeds
-				</button>
-				<button
-					type="button"
-					onClick={() => onAutoplay('random')}
-					disabled={query.is_complete}
-					className="btn-secondary px-3 py-1 text-xs"
-					title="Play to completion with random winners"
-				>
-					Auto · random
-				</button>
-				<button
-					type="button"
-					onClick={onReset}
-					className="btn-secondary px-3 py-1 text-xs"
-					title="Discard results and rebuild a fresh draft from the current settings"
-				>
-					Reset
-				</button>
+				{draft ? (
+					<button
+						type="button"
+						onClick={onStart}
+						className="btn-primary px-4 py-1.5 text-xs"
+						title="Lock in this configuration and begin reporting results"
+					>
+						Start tournament →
+					</button>
+				) : (
+					<>
+						<button
+							type="button"
+							onClick={() => onAutoplay('seed')}
+							disabled={query.is_complete}
+							className="btn-secondary px-3 py-1 text-xs"
+							title="Play to completion with the higher seed winning every match"
+						>
+							Auto · seeds
+						</button>
+						<button
+							type="button"
+							onClick={() => onAutoplay('random')}
+							disabled={query.is_complete}
+							className="btn-secondary px-3 py-1 text-xs"
+							title="Play to completion with random winners"
+						>
+							Auto · random
+						</button>
+						<button
+							type="button"
+							onClick={onReset}
+							className="btn-secondary px-3 py-1 text-xs"
+							title="Discard results and rebuild a fresh draft from the current settings"
+						>
+							Reset
+						</button>
+					</>
+				)}
 			</div>
 		</div>
 	);
