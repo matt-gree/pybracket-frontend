@@ -1,5 +1,7 @@
-// TypeScript mirror of pybracket's serialization shape (see pybracket/utils/serialization.py).
-// Participant ids in this studio are always integers (1..N), so id fields are typed as number.
+// TypeScript mirror of pybracket's serialization + the bridge's query read-models
+// (see pybracket/utils/serialization.py and public/py/bridge.py). Participant ids in this studio
+// are always integers (1..N), so id fields are typed as number. JSON object keys are strings, so
+// stat dicts keyed by participant id arrive string-keyed.
 
 export type BracketFormat =
 	| 'single_elim'
@@ -7,7 +9,7 @@ export type BracketFormat =
 	| 'round_robin'
 	| 'swiss'
 	| 'gauntlet'
-	| 'pools';
+	| 'league';
 
 export type BracketSide = 'winners' | 'losers' | 'grand_final';
 
@@ -19,7 +21,7 @@ export type MatchStatus =
 	| 'pending_choice'
 	| 'not_needed';
 
-export type AdvancementType = 'result' | 'bye' | 'forfeit' | 'walkover';
+export type AdvancementType = 'result' | 'bye' | 'forfeit' | 'walkover' | 'draw';
 
 export type BracketState = 'draft' | 'published' | 'complete';
 
@@ -30,6 +32,15 @@ export interface Participant {
 	seed: number;
 	name: string;
 	stats: Record<string, unknown>;
+}
+
+// Per-game record of a best-of series (scoring layer). stats: statName -> {participantId: value}.
+export interface Game {
+	number: number;
+	winner_id: number | null;
+	loser_id: number | null;
+	stats: Record<string, Record<string, number>>;
+	metadata: Record<string, unknown>;
 }
 
 export interface Match {
@@ -46,6 +57,8 @@ export interface Match {
 	status: MatchStatus;
 	best_of: number;
 	metadata: Record<string, unknown>;
+	games: Game[];
+	stats: Record<string, Record<string, number>>;
 }
 
 export interface Round {
@@ -70,6 +83,8 @@ export interface Standing {
 	rank: number;
 	wins: number;
 	losses: number;
+	draws: number;
+	points: number;
 	tiebreaker_scores: Record<string, number>;
 }
 
@@ -80,8 +95,88 @@ export interface Placement {
 	eliminated_in: string;
 }
 
-// Pre-computed read models the bridge returns alongside every bracket mutation, so the UI
-// never has to re-derive them (and they always reflect the real library's view).
+export interface PointsSystem {
+	win: number;
+	draw: number;
+	loss: number;
+	draws_allowed: boolean;
+}
+
+export type CrossDivisionPairing = 'balanced' | 'random' | 'top_seed_favored' | 'round_robin';
+
+export interface CrossDivision {
+	games_per_team: number;
+	pairing: CrossDivisionPairing;
+	repeat_home_away: boolean;
+	seed: number;
+}
+
+// --- multi-stage tournament -----------------------------------------------------------------
+
+// SlotRef sentinels mirror the library: place=0 = ALL_PLACES, group=-1 = EACH_GROUP.
+export const ALL_PLACES = 0;
+export const EACH_GROUP = -1;
+
+export interface SlotRef {
+	phase: string;
+	place: number;
+	group: number | null;
+}
+
+export type Seeding = 'snake' | 'rank' | 'manual';
+
+export interface Qualification {
+	sources: SlotRef[];
+	seeding: Seeding;
+}
+
+export interface Phase {
+	id: string;
+	format: BracketFormat;
+	config: Record<string, unknown>;
+	entrants: Qualification | null;
+	groups: number;
+	group_assignment: Seeding;
+	brackets: Bracket[];
+	state: BracketState;
+}
+
+export interface Tournament {
+	phases: Phase[];
+	participants: Participant[];
+	config: Record<string, unknown>;
+}
+
+export interface Ranked {
+	participant_id: number;
+	rank: number;
+	group: number;
+}
+
+// --- league read-model ----------------------------------------------------------------------
+
+export interface Fixture {
+	match_id: number;
+	home_id: number;
+	away_id: number;
+	division: number | null; // null = cross-division game
+}
+
+export interface Matchweek {
+	number: number;
+	fixtures: Fixture[];
+}
+
+export interface LeagueExtras {
+	divisions: number[][];
+	division_standings: Standing[][];
+	schedule: Matchweek[];
+	points_system?: PointsSystem;
+}
+
+// --- bridge query read-models ---------------------------------------------------------------
+
+// Per-bracket read model the bridge precomputes so the UI never re-derives library state.
 export interface BracketQuery {
 	ready_match_ids: number[];
 	standings: Standing[];
@@ -90,56 +185,66 @@ export interface BracketQuery {
 	is_complete: boolean;
 }
 
+export interface PhaseQuery {
+	id: string;
+	format: BracketFormat;
+	state: BracketState;
+	groups: number;
+	has_brackets: boolean;
+	is_complete: boolean;
+	is_draftable: boolean;
+	is_preview: boolean;
+	brackets: BracketQuery[];
+	group_results: Ranked[][];
+	league?: LeagueExtras;
+}
+
+export interface TournamentQuery {
+	phases: PhaseQuery[];
+}
+
+export interface TournamentBundle {
+	tournament: Tournament;
+	query: TournamentQuery;
+}
+
 export interface UnwindSignal {
 	match_id: number;
 	metadata: Record<string, unknown>;
 }
 
-// The bridge's single response envelope.
+// Allowable bye configuration for a field size (engine `bye_options`).
+export interface ByeOption {
+	rounds: number;
+	doubles: number;
+	singles: number;
+	label: string;
+	bye_rounds: Record<string, number>;
+}
+
+// The bridge's response envelope. Most ops return a tournament + query; the stateless bye helpers
+// return their own shapes; all share `ok`.
 export type DispatchResult =
-	| {
-			ok: true;
-			bracket: Bracket;
-			query: BracketQuery;
-			signals?: UnwindSignal[];
-	  }
+	| { ok: true; tournament: Tournament; query: TournamentQuery; signals?: UnwindSignal[] }
+	| { ok: true; options: ByeOption[] }
+	| { ok: true; completed: Record<string, number>; added: Record<string, number>; rounds: number }
 	| { ok: false; error: string };
 
-export interface BracketBundle {
-	bracket: Bracket;
-	query: BracketQuery;
+/** Narrow a dispatch envelope to the tournament shape. */
+export function isTournamentResult(
+	result: DispatchResult
+): result is { ok: true; tournament: Tournament; query: TournamentQuery; signals?: UnwindSignal[] } {
+	return result.ok && 'tournament' in result;
 }
 
-// --- pools ---------------------------------------------------------------------------------
-// A PoolsBracket is a composite: round-robin pools feeding an elimination bracket that stays
-// in DRAFT until the organizer publishes it. Each pool and the elimination are plain Brackets.
-export interface PoolsBracketData {
-	pools: Bracket[];
-	elimination: Bracket;
-	participants: Participant[];
-	config: Record<string, unknown>;
-}
-
-export interface PoolsQuery {
-	pools: BracketQuery[];
-	pools_complete: boolean;
-	elimination: BracketQuery;
-	elimination_state: BracketState;
-	advancing_ids: number[];
-}
-
-export interface PoolsBundle {
-	pools: PoolsBracketData;
-	query: PoolsQuery;
-}
-
-export type PoolsDispatchResult =
-	| { ok: true; pools: PoolsBracketData; pools_query: PoolsQuery }
-	| { ok: false; error: string };
-
-export type AnyDispatchResult = DispatchResult | PoolsDispatchResult;
-
-/** Narrow a dispatch envelope to the pools shape. */
-export function isPoolsResult(result: AnyDispatchResult): result is { ok: true; pools: PoolsBracketData; pools_query: PoolsQuery } {
-	return result.ok && 'pools' in result;
+/** Games won by (participant1, participant2) in a match's series. */
+export function seriesScore(match: Match): [number, number] {
+	let a = 0;
+	let b = 0;
+	for (const g of match.games) {
+		if (g.winner_id == null) continue;
+		if (g.winner_id === match.participant1_id) a++;
+		else if (g.winner_id === match.participant2_id) b++;
+	}
+	return [a, b];
 }

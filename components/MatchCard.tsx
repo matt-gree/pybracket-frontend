@@ -5,7 +5,7 @@
 // shown with colour, not badges. NOT_NEEDED matches (spec §1) render dimmed and inert.
 
 import { CARD_HEIGHT, CARD_WIDTH } from '@/lib/layout';
-import type { Match, Participant } from '@/lib/types';
+import { seriesScore, type Match, type Participant } from '@/lib/types';
 
 interface Props {
 	match: Match;
@@ -26,6 +26,9 @@ export function MatchCard({ match, byId, ready, onReport, onChoice, onOpenDetail
 	const inert = notNeeded || readOnly;
 	const choosing = !draft && !readOnly && match.status === 'pending_choice';
 	const choicePool = (match.metadata?.choice_pool as number[] | undefined) ?? [];
+	// Show per-side games won for a best-of series (once any game is logged).
+	const showSeries = !draft && match.best_of > 1 && match.games.length > 0;
+	const [s1, s2] = showSeries ? seriesScore(match) : [0, 0];
 
 	return (
 		<div
@@ -50,9 +53,9 @@ export function MatchCard({ match, byId, ready, onReport, onChoice, onOpenDetail
 			</button>
 
 			<div className="flex min-w-0 flex-1 flex-col justify-center">
-				<Slot match={match} slot={1} byId={byId} ready={ready} notNeeded={notNeeded} draft={draft} readOnly={readOnly} onReport={onReport} />
+				<Slot match={match} slot={1} byId={byId} ready={ready} notNeeded={notNeeded} draft={draft} readOnly={readOnly} onReport={onReport} score={showSeries ? s1 : null} />
 				<div className="border-t border-night-800" />
-				<Slot match={match} slot={2} byId={byId} ready={ready} notNeeded={notNeeded} draft={draft} readOnly={readOnly} onReport={onReport} />
+				<Slot match={match} slot={2} byId={byId} ready={ready} notNeeded={notNeeded} draft={draft} readOnly={readOnly} onReport={onReport} score={showSeries ? s2 : null} />
 
 				{choosing && choicePool.length > 0 && (
 					<div className="border-t border-night-800 px-1.5 py-1">
@@ -86,7 +89,8 @@ function Slot({
 	notNeeded,
 	draft,
 	readOnly,
-	onReport
+	onReport,
+	score
 }: {
 	match: Match;
 	slot: 1 | 2;
@@ -96,6 +100,7 @@ function Slot({
 	draft: boolean;
 	readOnly: boolean;
 	onReport: (matchId: number, winnerId: number) => void;
+	score: number | null;
 }) {
 	const pid = slot === 1 ? match.participant1_id : match.participant2_id;
 	const participant = pid != null ? byId[pid] : undefined;
@@ -119,6 +124,11 @@ function Slot({
 		content = <span className="truncate">{participant.name}</span>;
 	}
 
+	const scoreTag =
+		score != null ? (
+			<span className={`ml-auto shrink-0 font-mono text-xs ${isWinner ? 'text-star-400' : 'text-fog-500'}`}>{score}</span>
+		) : null;
+
 	if (clickable) {
 		return (
 			<button
@@ -128,9 +138,15 @@ function Slot({
 				title="Click to advance this participant"
 			>
 				{content}
+				{scoreTag}
 			</button>
 		);
 	}
 
-	return <div className={`${base} ${tone}`}>{content}</div>;
+	return (
+		<div className={`${base} ${tone}`}>
+			{content}
+			{scoreTag}
+		</div>
+	);
 }

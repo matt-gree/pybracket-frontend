@@ -1,411 +1,283 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BracketCanvas } from '@/components/BracketCanvas';
 import { BuilderForm } from '@/components/BuilderForm';
-import { InspectorPanel } from '@/components/InspectorPanel';
 import { MatchDetailModal } from '@/components/MatchDetailModal';
-import { PoolsView } from '@/components/PoolsView';
-import { StandingsPanel } from '@/components/StandingsPanel';
+import { PhasePanel } from '@/components/PhasePanel';
+import { PhaseTabs } from '@/components/PhaseTabs';
 import { usePyodide } from '@/components/PyodideProvider';
-import { Badge, EmptyState, Panel, PanelHeader, Spinner } from '@/components/ui';
+import { EmptyState, Panel, Spinner } from '@/components/ui';
 import { STAGE_LABEL } from '@/lib/pyodide';
 import { buildCreateAction, defaultBuilderState, type BuilderState } from '@/lib/spec';
 import {
-	isPoolsResult,
-	type AnyDispatchResult,
-	type BracketBundle,
+	isTournamentResult,
+	type Bracket,
+	type DispatchResult,
 	type Participant,
-	type PoolsBundle
+	type TournamentBundle
 } from '@/lib/types';
 
-type Decide = 'seed' | 'random';
+export type Decide = 'seed' | 'random';
+export type DetailRef = { phaseIndex: number; group: number; matchId: number };
+
+export interface PhaseHandlers {
+	onReport: (pi: number, group: number, matchId: number, winnerId: number, metadata?: Record<string, unknown>, stats?: unknown) => void;
+	onChoice: (pi: number, group: number, matchId: number, opponentId: number) => void;
+	onUnwind: (pi: number, group: number, matchId: number) => void;
+	onUpdate: (pi: number, group: number, matchId: number, patch: { best_of?: number; metadata?: Record<string, unknown> }) => void;
+	onReportGame: (pi: number, group: number, matchId: number, winnerId: number, opts?: { stats?: unknown }) => void;
+	onUnwindGame: (pi: number, group: number, matchId: number) => void;
+	onReportDraw: (pi: number, group: number, matchId: number, stats?: unknown) => void;
+	onAdvanceSwiss: (pi: number, group: number) => void;
+}
+
+export interface PhaseLifecycle {
+	publish: (pi: number) => void;
+	draft: (pi: number, order?: number[]) => void;
+	preview: (pi: number) => void;
+	revert: (pi: number) => void;
+}
 
 export function BracketStudio() {
 	const { engine, stage, error: loadError, retry } = usePyodide();
 	const [state, setState] = useState<BuilderState>(defaultBuilderState);
-	const [bundle, setBundle] = useState<BracketBundle | null>(null);
-	const [poolsBundle, setPoolsBundle] = useState<PoolsBundle | null>(null);
-	// The config lives in a DRAFT bracket that redrafts as options change — `redrafting` drives a
-	// clean dim/dissolve while the new draft is built. Once the tournament is started (published),
-	// a config change can't silently rebuild; `configChanged` surfaces a Reset prompt instead.
+	const [bundle, setBundle] = useState<TournamentBundle | null>(null);
+	const [activePhase, setActivePhase] = useState(0);
+	// The config lives in an all-DRAFT tournament that redrafts as options change. Once any result
+	// is reported, a config change can't silently rebuild; `configChanged` surfaces a Reset prompt.
 	const [redrafting, setRedrafting] = useState(false);
 	const [configChanged, setConfigChanged] = useState(false);
 	const [runtimeError, setRuntimeError] = useState<string | null>(null);
-	const [detailId, setDetailId] = useState<number | null>(null);
+	const [detail, setDetail] = useState<DetailRef | null>(null);
 
-	const byId = useMemo<Record<number, Participant>>(() => {
-		const map: Record<number, Participant> = {};
-		if (bundle) for (const p of bundle.bracket.participants) map[p.id] = p;
-		return map;
-	}, [bundle]);
-
-	const apply = useCallback((result: AnyDispatchResult): boolean => {
+	const apply = useCallback((result: DispatchResult): boolean => {
 		if (!result.ok) {
 			setRuntimeError(result.error);
 			return false;
 		}
-		setRuntimeError(null);
-		if ('bracket' in result) setBundle({ bracket: result.bracket, query: result.query });
-		return true;
+		if (isTournamentResult(result)) {
+			setRuntimeError(null);
+			setBundle({ tournament: result.tournament, query: result.query });
+			return true;
+		}
+		return false;
 	}, []);
 
-	// Build (or rebuild) the bracket from the current config, discarding any results in progress.
+	// Build (or rebuild) the whole tournament from the current config, discarding play in progress.
 	const regenerate = useCallback(() => {
 		if (!engine) return;
 		setRedrafting(false);
 		setConfigChanged(false);
-		const result = engine.dispatch(buildCreateAction(state));
-		// Pools return a composite shape; everything else is a single bracket.
-		if (isPoolsResult(result)) {
-			setRuntimeError(null);
-			setBundle(null);
-			setPoolsBundle({ pools: result.pools, query: result.pools_query });
-			return;
-		}
-		setPoolsBundle(null);
-		apply(result);
+		setActivePhase(0);
+		apply(engine.dispatch(buildCreateAction(state)));
 	}, [engine, state, apply]);
 
-	// Latest bundles read through refs so the debounced effect can check play-state without
+	// Read the latest bundle through a ref so the debounced effect can check play-state without
 	// re-firing whenever a result is reported (only a config change should trigger a redraft).
 	const bundleRef = useRef(bundle);
 	bundleRef.current = bundle;
-	const poolsBundleRef = useRef(poolsBundle);
-	poolsBundleRef.current = poolsBundle;
 
-	// Debounced draft: ~350ms after the config settles, rebuild the DRAFT bracket (dimming the old
-	// one for a clean dissolve). Once the tournament is published, a config change must not nuke
-	// live results — flag it for an explicit Reset instead. Pools keep their own multi-stage flow.
 	useEffect(() => {
 		if (!engine) return;
-		const pools = poolsBundleRef.current;
-		const inDraftPhase = !pools && (!bundleRef.current || bundleRef.current.bracket.state === 'draft');
-		// Only dim when there's an existing draft to dissolve into the new one.
-		if (inDraftPhase && bundleRef.current) setRedrafting(true);
+		const pristine = isPristine(bundleRef.current);
+		if (pristine && bundleRef.current) setRedrafting(true);
 		const handle = setTimeout(() => {
-			if (pools) {
-				if (isDraftPristine(null, pools)) regenerate();
-				else setConfigChanged(true);
-				return;
-			}
-			if (!bundleRef.current || bundleRef.current.bracket.state === 'draft') {
-				regenerate();
-			} else {
-				setConfigChanged(true);
-			}
+			if (pristine) regenerate();
+			else setConfigChanged(true);
 		}, 350);
 		return () => clearTimeout(handle);
 	}, [state, engine, regenerate]);
 
-	const handleReport = useCallback(
-		(matchId: number, winnerId: number, metadata?: Record<string, unknown>) => {
-			if (!engine || !bundle) return;
-			apply(
-				engine.dispatch({
-					op: 'report',
-					bracket: bundle.bracket,
-					match_id: matchId,
-					winner_id: winnerId,
-					metadata
-				})
-			);
-		},
-		[engine, bundle, apply]
-	);
-
-	const handleUpdate = useCallback(
-		(matchId: number, patch: { best_of?: number; metadata?: Record<string, unknown> }) => {
-			if (!engine || !bundle) return;
-			apply(engine.dispatch({ op: 'update_match', bracket: bundle.bracket, match_id: matchId, ...patch }));
-		},
-		[engine, bundle, apply]
-	);
-
-	const handleUnwind = useCallback(
-		(matchId: number) => {
-			if (!engine || !bundle) return;
-			apply(engine.dispatch({ op: 'unwind', bracket: bundle.bracket, match_id: matchId }));
-		},
-		[engine, bundle, apply]
-	);
-
-	const handleChoice = useCallback(
-		(matchId: number, opponentId: number) => {
-			if (!engine || !bundle) return;
-			apply(
-				engine.dispatch({
-					op: 'report_choice',
-					bracket: bundle.bracket,
-					match_id: matchId,
-					opponent_id: opponentId
-				})
-			);
-		},
-		[engine, bundle, apply]
-	);
-
-	const handleAdvanceSwiss = useCallback(() => {
+	// Auto-draft a previewed downstream phase the moment its sources complete (the pools flow).
+	useEffect(() => {
 		if (!engine || !bundle) return;
-		apply(engine.dispatch({ op: 'advance_swiss', bracket: bundle.bracket }));
+		const idx = bundle.query.phases.findIndex((p) => p.is_preview && p.is_draftable);
+		if (idx >= 0) {
+			apply(engine.dispatch({ op: 'draft_phase', tournament: bundle.tournament, phase_id: bundle.tournament.phases[idx].id }));
+		}
 	}, [engine, bundle, apply]);
 
-	// Runs the whole simulation in one synchronous pass, committing a single state update.
+	const tournament = bundle?.tournament;
+	const query = bundle?.query;
+	// A shape change can shrink the phase list; keep the active tab in range.
+	const activeIdx = query ? Math.min(activePhase, query.phases.length - 1) : 0;
+
+	// --- phase-scoped op helpers -----------------------------------------------------------------
+	const phaseOp = useCallback(
+		(phaseIndex: number, action: Record<string, unknown>) => {
+			if (!engine || !bundle) return;
+			apply(engine.dispatch({ ...action, tournament: bundle.tournament, phase_id: bundle.tournament.phases[phaseIndex].id }));
+		},
+		[engine, bundle, apply]
+	);
+
+	const handlers = useMemo<PhaseHandlers>(
+		() => ({
+			onReport: (pi: number, group: number, matchId: number, winnerId: number, metadata?: Record<string, unknown>, stats?: unknown) =>
+				phaseOp(pi, { op: 'report', group, match_id: matchId, winner_id: winnerId, metadata, stats }),
+			onChoice: (pi: number, group: number, matchId: number, opponentId: number) =>
+				phaseOp(pi, { op: 'report_choice', group, match_id: matchId, opponent_id: opponentId }),
+			onUnwind: (pi: number, group: number, matchId: number) =>
+				phaseOp(pi, { op: 'unwind', group, match_id: matchId }),
+			onUpdate: (pi: number, group: number, matchId: number, patch: { best_of?: number; metadata?: Record<string, unknown> }) =>
+				phaseOp(pi, { op: 'update_match', group, match_id: matchId, ...patch }),
+			onReportGame: (pi: number, group: number, matchId: number, winnerId: number, opts?: { stats?: unknown }) =>
+				phaseOp(pi, { op: 'report_game', group, match_id: matchId, winner_id: winnerId, stats: opts?.stats }),
+			onUnwindGame: (pi: number, group: number, matchId: number) =>
+				phaseOp(pi, { op: 'unwind_game', group, match_id: matchId }),
+			onReportDraw: (pi: number, group: number, matchId: number, stats?: unknown) =>
+				phaseOp(pi, { op: 'report_draw', group, match_id: matchId, stats }),
+			onAdvanceSwiss: (pi: number, group: number) => phaseOp(pi, { op: 'advance_swiss', group })
+		}),
+		[phaseOp]
+	);
+
+	const lifecycle = useMemo<PhaseLifecycle>(
+		() => ({
+			publish: (pi: number) => phaseOp(pi, { op: 'publish_phase' }),
+			draft: (pi: number, order?: number[]) => phaseOp(pi, { op: 'draft_phase', new_seed_order: order ?? null }),
+			preview: (pi: number) => phaseOp(pi, { op: 'preview_phase' }),
+			revert: (pi: number) => phaseOp(pi, { op: 'revert_phase' })
+		}),
+		[phaseOp]
+	);
+
+	// Autoplay the active phase to completion in one synchronous pass.
 	const autoplay = useCallback(
 		(decide: Decide) => {
 			if (!engine || !bundle) return;
-			let bracket = bundle.bracket;
-			let query = bundle.query;
+			const phaseId = bundle.tournament.phases[activePhase].id;
+			let res: DispatchResult = { ok: true, tournament: bundle.tournament, query: bundle.query };
 			let guard = 0;
-			while (!query.is_complete && guard < 1000) {
+			while (res.ok && isTournamentResult(res) && guard < 4000) {
 				guard++;
-				const choice = bracket.matches.find((m) => m.status === 'pending_choice');
-				if (choice) {
-					const pool = (choice.metadata?.choice_pool as number[] | undefined) ?? [];
-					if (pool.length === 0) break;
-					const pick = decide === 'random' ? pool[Math.floor(Math.random() * pool.length)] : pool[0];
-					const res = engine.dispatch({
-						op: 'report_choice',
-						bracket,
-						match_id: choice.id,
-						opponent_id: pick
-					});
-					if (!res.ok || !('bracket' in res)) return apply(res);
-					bracket = res.bracket;
-					query = res.query;
-					continue;
-				}
-				if (query.ready_match_ids.length === 0) {
-					if (bracket.format === 'swiss') {
-						const res = engine.dispatch({ op: 'advance_swiss', bracket });
-						if (!res.ok || !('bracket' in res)) return apply(res);
-						bracket = res.bracket;
-						query = res.query;
-						continue;
+				const t = res.tournament;
+				const pq = res.query.phases[activePhase];
+				let acted = false;
+				for (let g = 0; g < pq.brackets.length && !acted; g++) {
+					const bracket = t.phases[activePhase].brackets[g];
+					const choice = bracket.matches.find((m) => m.status === 'pending_choice');
+					if (choice) {
+						const pool = (choice.metadata?.choice_pool as number[] | undefined) ?? [];
+						if (pool.length === 0) continue;
+						const pick = decide === 'random' ? pool[Math.floor(Math.random() * pool.length)] : pool[0];
+						res = engine.dispatch({ op: 'report_choice', tournament: t, phase_id: phaseId, group: g, match_id: choice.id, opponent_id: pick });
+						acted = true;
+					} else if (pq.brackets[g].ready_match_ids.length > 0) {
+						const mid = pq.brackets[g].ready_match_ids[0];
+						const m = bracket.matches.find((x) => x.id === mid)!;
+						const winner = pickWinner(bracket, m.participant1_id!, m.participant2_id!, decide);
+						res = engine.dispatch({ op: 'report', tournament: t, phase_id: phaseId, group: g, match_id: mid, winner_id: winner });
+						acted = true;
+					} else if (bracket.format === 'swiss' && !pq.brackets[g].is_complete) {
+						res = engine.dispatch({ op: 'advance_swiss', tournament: t, phase_id: phaseId, group: g });
+						acted = true;
 					}
-					break;
 				}
-				const mid = query.ready_match_ids[0];
-				const m = bracket.matches.find((x) => x.id === mid)!;
-				const winner = pickWinner(bracket, m.participant1_id!, m.participant2_id!, decide);
-				const res = engine.dispatch({ op: 'report', bracket, match_id: mid, winner_id: winner });
-				if (!res.ok || !('bracket' in res)) return apply(res);
-				bracket = res.bracket;
-				query = res.query;
+				if (!acted) break;
 			}
-			setRuntimeError(null);
-			setBundle({ bracket, query });
+			apply(res);
 		},
-		[engine, bundle, apply]
+		[engine, bundle, activePhase, apply]
 	);
 
-	// Start the tournament: publish the DRAFT bracket so results can be reported.
-	const handleStart = useCallback(() => {
-		if (!engine || !bundle) return;
-		apply(engine.dispatch({ op: 'publish', bracket: bundle.bracket }));
-	}, [engine, bundle, apply]);
-
-	// Reset = rebuild a fresh draft from the current config, discarding results in progress.
 	const handleReset = useCallback(() => {
 		setRuntimeError(null);
 		regenerate();
 	}, [regenerate]);
 
 	const ready = engine !== null;
-	const q = bundle?.query;
-	const needsSwissAdvance =
-		bundle?.bracket.format === 'swiss' && q && !q.is_complete && q.ready_match_ids.length === 0;
 
-	const detailMatch = bundle && detailId != null ? bundle.bracket.matches.find((m) => m.id === detailId) : undefined;
-	const detailRound = detailMatch
-		? (bundle!.bracket.rounds.find((r) => r.match_ids.includes(detailMatch.id))?.name ?? '')
-		: '';
+	// Resolve the detail-modal target (match + the bracket it lives in) from the ref.
+	const detailCtx = useMemo(() => {
+		if (!tournament || !detail) return null;
+		const bracket: Bracket | undefined = tournament.phases[detail.phaseIndex]?.brackets[detail.group];
+		const match = bracket?.matches.find((m) => m.id === detail.matchId);
+		if (!bracket || !match) return null;
+		const byId: Record<number, Participant> = {};
+		for (const p of bracket.participants) byId[p.id] = p;
+		const roundName = bracket.rounds.find((r) => r.match_ids.includes(match.id))?.name ?? '';
+		const ps = tournament.phases[detail.phaseIndex].brackets[detail.group].config.points_system as
+			| { draws_allowed?: boolean }
+			| undefined;
+		return { bracket, match, byId, roundName, drawsAllowed: !!ps?.draws_allowed };
+	}, [tournament, detail]);
 
 	return (
 		<>
-		<div className="grid grid-cols-1 gap-5 lg:grid-cols-[340px_minmax(0,1fr)]">
-			{/* Left: builder */}
-			<div className="flex flex-col gap-4">
-				<Panel className="p-4">
-					<BuilderForm state={state} onChange={setState} />
-				</Panel>
-				<EngineStatus ready={ready} stage={stage} loadError={loadError} onRetry={retry} />
-			</div>
+			<div className="grid grid-cols-1 gap-5 lg:grid-cols-[340px_minmax(0,1fr)]">
+				{/* Left: builder */}
+				<div className="flex flex-col gap-4">
+					<Panel className="p-4">
+						<BuilderForm state={state} onChange={setState} />
+					</Panel>
+					<EngineStatus ready={ready} stage={stage} loadError={loadError} onRetry={retry} />
+				</div>
 
-			{/* Right: result */}
-			<div className="flex min-w-0 flex-col gap-4">
-				{runtimeError && (
-					<div className="rounded-lg border border-rose-700 bg-rose-700/10 px-4 py-3 text-sm text-rose-300">
-						{runtimeError}
-					</div>
-				)}
+				{/* Right: tournament */}
+				<div className="flex min-w-0 flex-col gap-4">
+					{runtimeError && (
+						<div className="rounded-lg border border-rose-700 bg-rose-700/10 px-4 py-3 text-sm text-rose-300">
+							{runtimeError}
+						</div>
+					)}
 
-				{configChanged && (bundle || poolsBundle) && (
-					<div className="flex items-center justify-between gap-3 rounded-lg border border-amber-700/60 bg-amber-700/10 px-4 py-2.5 text-xs text-amber-200">
-						<span>Configuration changed — reset to rebuild the bracket from the new settings.</span>
-						<button type="button" onClick={handleReset} className="btn-primary shrink-0 px-3 py-1 text-xs">
-							Reset
-						</button>
-					</div>
-				)}
-
-				{poolsBundle && engine ? (
-					<>
-						<div className="flex items-center justify-end">
-							<button type="button" onClick={handleReset} className="btn-secondary px-3 py-1 text-xs">
+					{configChanged && bundle && (
+						<div className="flex items-center justify-between gap-3 rounded-lg border border-amber-700/60 bg-amber-700/10 px-4 py-2.5 text-xs text-amber-200">
+							<span>Configuration changed — reset to rebuild the tournament from the new settings.</span>
+							<button type="button" onClick={handleReset} className="btn-primary shrink-0 px-3 py-1 text-xs">
 								Reset
 							</button>
 						</div>
-						<PoolsView
-							engine={engine}
-							bundle={poolsBundle}
-							onChange={setPoolsBundle}
-							onError={setRuntimeError}
-						/>
-					</>
-				) : !bundle ? (
-					<Panel>
-						<EmptyState
-							title={ready ? 'Building your bracket…' : 'Starting the engine'}
-							detail={
-								ready
-									? 'Generating a live draft from your settings. Adjust the options to rebuild it.'
-									: 'The Python runtime is loading. This happens once per visit.'
-							}
-						/>
-					</Panel>
-				) : (
-					<>
-						<ResultToolbar
-							bundle={bundle}
-							onAutoplay={autoplay}
-							onAdvanceSwiss={handleAdvanceSwiss}
-							onReset={handleReset}
-							onStart={handleStart}
-							draft={bundle.bracket.state === 'draft'}
-							needsSwissAdvance={!!needsSwissAdvance}
-							byId={byId}
-						/>
+					)}
 
-						<ByesAddedNote config={bundle.bracket.config} />
+					{!bundle || !tournament || !query ? (
+						<Panel>
+							<EmptyState
+								title={ready ? 'Building your tournament…' : 'Starting the engine'}
+								detail={
+									ready
+										? 'Generating a live draft from your settings. Adjust the options to rebuild it.'
+										: 'The Python runtime is loading. This happens once per visit.'
+								}
+							/>
+						</Panel>
+					) : (
+						<>
+							<PhaseTabs phases={query.phases} active={activeIdx} onChange={setActivePhase} onReset={handleReset} />
 
-						<div className={`transition-opacity duration-300 ${redrafting ? 'opacity-40' : 'opacity-100'}`}>
-							<Panel className="p-4">
-								<BracketCanvas
-									bracket={bundle.bracket}
-									readyIds={bundle.query.ready_match_ids}
-									onReport={handleReport}
-									onChoice={handleChoice}
-									onOpenDetail={setDetailId}
-									readOnly={bundle.bracket.state === 'draft'}
+							<div className={`transition-opacity duration-300 ${redrafting ? 'opacity-40' : 'opacity-100'}`}>
+								<PhasePanel
+									tournament={tournament}
+									phaseQuery={query.phases[activeIdx]}
+									phaseIndex={activeIdx}
+									handlers={handlers}
+									lifecycle={lifecycle}
+									onAutoplay={autoplay}
+									onOpenDetail={(group, matchId) => setDetail({ phaseIndex: activeIdx, group, matchId })}
 								/>
-							</Panel>
-						</div>
-
-						<div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-							<Panel>
-								<PanelHeader title={bundle.query.placements.length ? 'Placements' : 'Standings'} />
-								<StandingsPanel query={bundle.query} byId={byId} />
-							</Panel>
-							<Panel>
-								<InspectorPanel bracket={bundle.bracket} />
-							</Panel>
-						</div>
-					</>
-				)}
+							</div>
+						</>
+					)}
+				</div>
 			</div>
-		</div>
-		{detailMatch && (
-			<MatchDetailModal
-				match={detailMatch}
-				byId={byId}
-				roundName={detailRound}
-				onReport={handleReport}
-				onUnwind={handleUnwind}
-				onUpdate={handleUpdate}
-				onClose={() => setDetailId(null)}
-			/>
-		)}
+
+			{detailCtx && detail && (
+				<MatchDetailModal
+					match={detailCtx.match}
+					byId={detailCtx.byId}
+					roundName={detailCtx.roundName}
+					drawsAllowed={detailCtx.drawsAllowed}
+					onReport={(matchId, winnerId, metadata, stats) => handlers.onReport(detail.phaseIndex, detail.group, matchId, winnerId, metadata, stats)}
+					onUnwind={(matchId) => handlers.onUnwind(detail.phaseIndex, detail.group, matchId)}
+					onUpdate={(matchId, patch) => handlers.onUpdate(detail.phaseIndex, detail.group, matchId, patch)}
+					onReportGame={(matchId, winnerId, opts) => handlers.onReportGame(detail.phaseIndex, detail.group, matchId, winnerId, opts)}
+					onUnwindGame={(matchId) => handlers.onUnwindGame(detail.phaseIndex, detail.group, matchId)}
+					onReportDraw={(matchId, stats) => handlers.onReportDraw(detail.phaseIndex, detail.group, matchId, stats)}
+					onClose={() => setDetail(null)}
+				/>
+			)}
 		</>
-	);
-}
-
-function ResultToolbar({
-	bundle,
-	onAutoplay,
-	onAdvanceSwiss,
-	onReset,
-	onStart,
-	draft,
-	needsSwissAdvance,
-	byId
-}: {
-	bundle: BracketBundle;
-	onAutoplay: (d: Decide) => void;
-	onAdvanceSwiss: () => void;
-	onReset: () => void;
-	onStart: () => void;
-	draft: boolean;
-	needsSwissAdvance: boolean;
-	byId: Record<number, Participant>;
-}) {
-	const { bracket, query } = bundle;
-	const stateColor = bracket.state === 'complete' ? 'green' : bracket.state === 'published' ? 'court' : 'gray';
-	return (
-		<div className="flex flex-wrap items-center justify-between gap-3">
-			<div className="flex flex-wrap items-center gap-2">
-				<Badge color={stateColor}>{bracket.state}</Badge>
-				{query.is_complete && query.winner && (
-					<Badge color="gold">🏆 {query.winner.name}</Badge>
-				)}
-				{!draft && needsSwissAdvance && (
-					<button type="button" onClick={onAdvanceSwiss} className="btn-primary px-3 py-1 text-xs">
-						Advance round →
-					</button>
-				)}
-			</div>
-			<div className="flex flex-wrap items-center gap-2">
-				{draft ? (
-					<button
-						type="button"
-						onClick={onStart}
-						className="btn-primary px-4 py-1.5 text-xs"
-						title="Lock in this configuration and begin reporting results"
-					>
-						Start tournament →
-					</button>
-				) : (
-					<>
-						<button
-							type="button"
-							onClick={() => onAutoplay('seed')}
-							disabled={query.is_complete}
-							className="btn-secondary px-3 py-1 text-xs"
-							title="Play to completion with the higher seed winning every match"
-						>
-							Auto · seeds
-						</button>
-						<button
-							type="button"
-							onClick={() => onAutoplay('random')}
-							disabled={query.is_complete}
-							className="btn-secondary px-3 py-1 text-xs"
-							title="Play to completion with random winners"
-						>
-							Auto · random
-						</button>
-						<button
-							type="button"
-							onClick={onReset}
-							className="btn-secondary px-3 py-1 text-xs"
-							title="Discard results and rebuild a fresh draft from the current settings"
-						>
-							Reset
-						</button>
-					</>
-				)}
-			</div>
-		</div>
 	);
 }
 
@@ -446,39 +318,15 @@ function EngineStatus({
 	);
 }
 
-function ByesAddedNote({ config }: { config: Record<string, unknown> }) {
-	const added = config.bye_rounds_added as Record<string, number> | undefined;
-	if (!added || Object.keys(added).length === 0) return null;
-	const seeds = Object.keys(added)
-		.map(Number)
-		.sort((a, b) => a - b);
-	const detail = seeds.map((s) => `seed ${s} +${added[String(s)]}`).join(', ');
-	return (
-		<div className="rounded-lg border border-amber-700/60 bg-amber-700/10 px-4 py-2.5 text-xs text-amber-200">
-			The engine added byes to complete the bracket: {detail}.
-		</div>
+// Pristine = no real result reported anywhere (byes auto-advance to 'bye', never 'completed').
+function isPristine(bundle: TournamentBundle | null): boolean {
+	if (!bundle) return true;
+	return !bundle.tournament.phases.some((ph) =>
+		ph.brackets.some((b) => b.matches.some((m) => m.status === 'completed'))
 	);
 }
 
-// A draft is "pristine" until a real result is reported (a match becomes completed). Byes are
-// auto-advanced by the library (status 'bye', never 'completed'), so they don't count as play.
-function isDraftPristine(bundle: BracketBundle | null, poolsBundle: PoolsBundle | null): boolean {
-	if (poolsBundle) {
-		const played =
-			poolsBundle.pools.pools.some((p) => p.matches.some((m) => m.status === 'completed')) ||
-			poolsBundle.pools.elimination.matches.some((m) => m.status === 'completed');
-		return !played;
-	}
-	if (bundle) return !bundle.bracket.matches.some((m) => m.status === 'completed');
-	return true;
-}
-
-function pickWinner(
-	bracket: BracketBundle['bracket'],
-	p1: number,
-	p2: number,
-	decide: Decide
-): number {
+function pickWinner(bracket: Bracket, p1: number, p2: number, decide: Decide): number {
 	if (decide === 'random') return Math.random() < 0.5 ? p1 : p2;
 	const s1 = bracket.participants.find((p) => p.id === p1)?.seed ?? 999;
 	const s2 = bracket.participants.find((p) => p.id === p2)?.seed ?? 999;

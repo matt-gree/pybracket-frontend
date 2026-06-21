@@ -14,6 +14,16 @@ const Participant = z.object({
 	stats: z.record(z.unknown())
 });
 
+const Stats = z.record(z.record(z.number()));
+
+const Game = z.object({
+	number: z.number(),
+	winner_id: z.number().nullable(),
+	loser_id: z.number().nullable(),
+	stats: Stats,
+	metadata: z.record(z.unknown())
+});
+
 const Match = z.object({
 	id: z.number(),
 	round_number: z.number(),
@@ -22,12 +32,14 @@ const Match = z.object({
 	participant2_id: z.number().nullable(),
 	winner_id: z.number().nullable(),
 	loser_id: z.number().nullable(),
-	advancement_type: z.enum(['result', 'bye', 'forfeit', 'walkover']).nullable(),
+	advancement_type: z.enum(['result', 'bye', 'forfeit', 'walkover', 'draw']).nullable(),
 	next_winner_match_id: z.number().nullable(),
 	next_loser_match_id: z.number().nullable(),
 	status: z.enum(['pending', 'ready', 'bye', 'completed', 'pending_choice', 'not_needed']),
 	best_of: z.number(),
-	metadata: z.record(z.unknown())
+	metadata: z.record(z.unknown()),
+	games: z.array(Game),
+	stats: Stats
 });
 
 const Round = z.object({
@@ -39,7 +51,7 @@ const Round = z.object({
 });
 
 const Bracket = z.object({
-	format: z.enum(['single_elim', 'double_elim', 'round_robin', 'swiss', 'gauntlet', 'pools']),
+	format: z.enum(['single_elim', 'double_elim', 'round_robin', 'swiss', 'gauntlet', 'league']),
 	state: z.enum(['draft', 'published', 'complete']),
 	participants: z.array(Participant),
 	matches: z.array(Match),
@@ -47,42 +59,82 @@ const Bracket = z.object({
 	config: z.record(z.unknown())
 });
 
-const Query = z.object({
+const Standing = z.object({
+	participant_id: z.number(),
+	rank: z.number(),
+	wins: z.number(),
+	losses: z.number(),
+	draws: z.number(),
+	points: z.number(),
+	tiebreaker_scores: z.record(z.number())
+});
+
+const Ranked = z.object({ participant_id: z.number(), rank: z.number(), group: z.number() });
+
+const BracketQuery = z.object({
 	ready_match_ids: z.array(z.number()),
-	standings: z.array(z.unknown()),
+	standings: z.array(Standing),
 	placements: z.array(z.unknown()),
 	winner: Participant.nullable(),
 	is_complete: z.boolean()
 });
 
-const BracketResult = z.object({
-	ok: z.literal(true),
-	bracket: Bracket,
-	query: Query,
-	signals: z.array(z.unknown()).optional()
+const SlotRef = z.object({ phase: z.string(), place: z.number(), group: z.number().nullable() });
+const Qualification = z.object({ sources: z.array(SlotRef), seeding: z.enum(['snake', 'rank', 'manual']) });
+
+const Phase = z.object({
+	id: z.string(),
+	format: z.string(),
+	config: z.record(z.unknown()),
+	entrants: Qualification.nullable(),
+	groups: z.number(),
+	group_assignment: z.string(),
+	brackets: z.array(Bracket),
+	state: z.enum(['draft', 'published', 'complete'])
 });
 
-const PoolsResult = z.object({
+const LeagueExtras = z.object({
+	divisions: z.array(z.array(z.number())),
+	division_standings: z.array(z.array(Standing)),
+	schedule: z.array(
+		z.object({
+			number: z.number(),
+			fixtures: z.array(
+				z.object({ match_id: z.number(), home_id: z.number(), away_id: z.number(), division: z.number().nullable() })
+			)
+		})
+	)
+});
+
+const PhaseQuery = z.object({
+	id: z.string(),
+	format: z.string(),
+	state: z.enum(['draft', 'published', 'complete']),
+	groups: z.number(),
+	has_brackets: z.boolean(),
+	is_complete: z.boolean(),
+	is_draftable: z.boolean(),
+	is_preview: z.boolean(),
+	brackets: z.array(BracketQuery),
+	group_results: z.array(z.array(Ranked)),
+	league: LeagueExtras.optional()
+});
+
+const Tournament = z.object({
+	participants: z.array(Participant),
+	config: z.record(z.unknown()),
+	phases: z.array(Phase)
+});
+
+const Envelope = z.object({
 	ok: z.literal(true),
-	pools: z.object({
-		pools: z.array(Bracket),
-		elimination: Bracket,
-		participants: z.array(Participant),
-		config: z.record(z.unknown())
-	}),
-	pools_query: z.object({
-		pools: z.array(Query),
-		pools_complete: z.boolean(),
-		elimination: Query,
-		elimination_state: z.enum(['draft', 'published', 'complete']),
-		advancing_ids: z.array(z.number())
-	})
+	tournament: Tournament,
+	query: z.object({ phases: z.array(PhaseQuery) })
 });
 
 describe.each(loadFixtures().map((f) => [f.name, f] as const))('contract: %s', (_name, fix) => {
-	it('matches the studio serialization shape', () => {
-		const schema = fix.result.pools ? PoolsResult : BracketResult;
-		const parsed = schema.safeParse(fix.result);
+	it('matches the studio tournament serialization shape', () => {
+		const parsed = Envelope.safeParse(fix.result);
 		if (!parsed.success) throw new Error(parsed.error.toString());
 		expect(parsed.success).toBe(true);
 	});

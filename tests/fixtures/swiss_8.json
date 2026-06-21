@@ -1,8 +1,7 @@
 {
   "action": {
-    "format": "swiss",
+    "config": {},
     "op": "create",
-    "options": {},
     "participants": [
       {
         "id": 1,
@@ -44,91 +43,191 @@
         "name": "Seed 8",
         "seed": 8
       }
+    ],
+    "phases": [
+      {
+        "entrants": null,
+        "format": "swiss",
+        "groups": 1,
+        "id": "main",
+        "options": {}
+      }
     ]
   },
   "name": "swiss_8",
   "result": {
-    "bracket": {
-      "config": {
-        "allow_bye": true,
-        "pairing_method": "dutch",
-        "rounds": 3,
-        "tiebreakers": [
-          {
-            "type": "win_count"
-          },
-          {
-            "truncated": false,
-            "type": "buchholz"
-          },
-          {
-            "type": "head_to_head"
-          }
-        ]
-      },
-      "format": "swiss",
-      "matches": [
+    "ok": true,
+    "query": {
+      "phases": [
         {
-          "advancement_type": null,
-          "best_of": 1,
-          "bracket_side": "winners",
-          "id": 1,
-          "loser_id": null,
-          "metadata": {},
-          "next_loser_match_id": null,
-          "next_winner_match_id": null,
-          "participant1_id": 1,
-          "participant2_id": 5,
-          "round_number": 1,
-          "status": "ready",
-          "winner_id": null
-        },
-        {
-          "advancement_type": null,
-          "best_of": 1,
-          "bracket_side": "winners",
-          "id": 2,
-          "loser_id": null,
-          "metadata": {},
-          "next_loser_match_id": null,
-          "next_winner_match_id": null,
-          "participant1_id": 2,
-          "participant2_id": 6,
-          "round_number": 1,
-          "status": "ready",
-          "winner_id": null
-        },
-        {
-          "advancement_type": null,
-          "best_of": 1,
-          "bracket_side": "winners",
-          "id": 3,
-          "loser_id": null,
-          "metadata": {},
-          "next_loser_match_id": null,
-          "next_winner_match_id": null,
-          "participant1_id": 3,
-          "participant2_id": 7,
-          "round_number": 1,
-          "status": "ready",
-          "winner_id": null
-        },
-        {
-          "advancement_type": null,
-          "best_of": 1,
-          "bracket_side": "winners",
-          "id": 4,
-          "loser_id": null,
-          "metadata": {},
-          "next_loser_match_id": null,
-          "next_winner_match_id": null,
-          "participant1_id": 4,
-          "participant2_id": 8,
-          "round_number": 1,
-          "status": "ready",
-          "winner_id": null
+          "brackets": [
+            {
+              "is_complete": false,
+              "placements": [],
+              "ready_match_ids": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "standings": [
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 1,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "buchholz": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                },
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 2,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "buchholz": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                },
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 3,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "buchholz": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                },
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 4,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "buchholz": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                },
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 5,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "buchholz": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                },
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 6,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "buchholz": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                },
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 7,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "buchholz": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                },
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 8,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "buchholz": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                }
+              ],
+              "winner": null
+            }
+          ],
+          "format": "swiss",
+          "group_results": [
+            [
+              {
+                "group": 0,
+                "participant_id": 1,
+                "rank": 1
+              },
+              {
+                "group": 0,
+                "participant_id": 2,
+                "rank": 1
+              },
+              {
+                "group": 0,
+                "participant_id": 3,
+                "rank": 1
+              },
+              {
+                "group": 0,
+                "participant_id": 4,
+                "rank": 1
+              },
+              {
+                "group": 0,
+                "participant_id": 5,
+                "rank": 1
+              },
+              {
+                "group": 0,
+                "participant_id": 6,
+                "rank": 1
+              },
+              {
+                "group": 0,
+                "participant_id": 7,
+                "rank": 1
+              },
+              {
+                "group": 0,
+                "participant_id": 8,
+                "rank": 1
+              }
+            ]
+          ],
+          "groups": 1,
+          "has_brackets": true,
+          "id": "main",
+          "is_complete": false,
+          "is_draftable": false,
+          "is_preview": false,
+          "state": "published"
         }
-      ],
+      ]
+    },
+    "tournament": {
+      "config": {},
       "participants": [
         {
           "id": 1,
@@ -179,123 +278,174 @@
           "stats": {}
         }
       ],
-      "rounds": [
+      "phases": [
         {
-          "best_of": null,
-          "bracket_side": "winners",
-          "match_ids": [
-            1,
-            2,
-            3,
-            4
+          "brackets": [
+            {
+              "config": {
+                "allow_bye": true,
+                "pairing_method": "dutch",
+                "rounds": 3,
+                "tiebreakers": [
+                  {
+                    "type": "win_count"
+                  },
+                  {
+                    "truncated": false,
+                    "type": "buchholz"
+                  },
+                  {
+                    "type": "head_to_head"
+                  }
+                ]
+              },
+              "format": "swiss",
+              "matches": [
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 1,
+                  "loser_id": null,
+                  "metadata": {},
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 1,
+                  "participant2_id": 5,
+                  "round_number": 1,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 2,
+                  "loser_id": null,
+                  "metadata": {},
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 2,
+                  "participant2_id": 6,
+                  "round_number": 1,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 3,
+                  "loser_id": null,
+                  "metadata": {},
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 3,
+                  "participant2_id": 7,
+                  "round_number": 1,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 4,
+                  "loser_id": null,
+                  "metadata": {},
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 4,
+                  "participant2_id": 8,
+                  "round_number": 1,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                }
+              ],
+              "participants": [
+                {
+                  "id": 1,
+                  "name": "Seed 1",
+                  "seed": 1,
+                  "stats": {}
+                },
+                {
+                  "id": 2,
+                  "name": "Seed 2",
+                  "seed": 2,
+                  "stats": {}
+                },
+                {
+                  "id": 3,
+                  "name": "Seed 3",
+                  "seed": 3,
+                  "stats": {}
+                },
+                {
+                  "id": 4,
+                  "name": "Seed 4",
+                  "seed": 4,
+                  "stats": {}
+                },
+                {
+                  "id": 5,
+                  "name": "Seed 5",
+                  "seed": 5,
+                  "stats": {}
+                },
+                {
+                  "id": 6,
+                  "name": "Seed 6",
+                  "seed": 6,
+                  "stats": {}
+                },
+                {
+                  "id": 7,
+                  "name": "Seed 7",
+                  "seed": 7,
+                  "stats": {}
+                },
+                {
+                  "id": 8,
+                  "name": "Seed 8",
+                  "seed": 8,
+                  "stats": {}
+                }
+              ],
+              "rounds": [
+                {
+                  "best_of": null,
+                  "bracket_side": "winners",
+                  "match_ids": [
+                    1,
+                    2,
+                    3,
+                    4
+                  ],
+                  "name": "Round 1",
+                  "number": 1
+                }
+              ],
+              "state": "published"
+            }
           ],
-          "name": "Round 1",
-          "number": 1
+          "config": {},
+          "entrants": null,
+          "format": "swiss",
+          "group_assignment": "snake",
+          "groups": 1,
+          "id": "main",
+          "state": "published"
         }
-      ],
-      "state": "published"
-    },
-    "ok": true,
-    "query": {
-      "is_complete": false,
-      "placements": [],
-      "ready_match_ids": [
-        1,
-        2,
-        3,
-        4
-      ],
-      "standings": [
-        {
-          "losses": 0,
-          "participant_id": 1,
-          "rank": 1,
-          "tiebreaker_scores": {
-            "buchholz": 0.0,
-            "head_to_head": 0.0,
-            "win_count": 0.0
-          },
-          "wins": 0
-        },
-        {
-          "losses": 0,
-          "participant_id": 2,
-          "rank": 1,
-          "tiebreaker_scores": {
-            "buchholz": 0.0,
-            "head_to_head": 0.0,
-            "win_count": 0.0
-          },
-          "wins": 0
-        },
-        {
-          "losses": 0,
-          "participant_id": 3,
-          "rank": 1,
-          "tiebreaker_scores": {
-            "buchholz": 0.0,
-            "head_to_head": 0.0,
-            "win_count": 0.0
-          },
-          "wins": 0
-        },
-        {
-          "losses": 0,
-          "participant_id": 4,
-          "rank": 1,
-          "tiebreaker_scores": {
-            "buchholz": 0.0,
-            "head_to_head": 0.0,
-            "win_count": 0.0
-          },
-          "wins": 0
-        },
-        {
-          "losses": 0,
-          "participant_id": 5,
-          "rank": 1,
-          "tiebreaker_scores": {
-            "buchholz": 0.0,
-            "head_to_head": 0.0,
-            "win_count": 0.0
-          },
-          "wins": 0
-        },
-        {
-          "losses": 0,
-          "participant_id": 6,
-          "rank": 1,
-          "tiebreaker_scores": {
-            "buchholz": 0.0,
-            "head_to_head": 0.0,
-            "win_count": 0.0
-          },
-          "wins": 0
-        },
-        {
-          "losses": 0,
-          "participant_id": 7,
-          "rank": 1,
-          "tiebreaker_scores": {
-            "buchholz": 0.0,
-            "head_to_head": 0.0,
-            "win_count": 0.0
-          },
-          "wins": 0
-        },
-        {
-          "losses": 0,
-          "participant_id": 8,
-          "rank": 1,
-          "tiebreaker_scores": {
-            "buchholz": 0.0,
-            "head_to_head": 0.0,
-            "win_count": 0.0
-          },
-          "wins": 0
-        }
-      ],
-      "winner": null
+      ]
     }
   }
 }
