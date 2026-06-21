@@ -1,19 +1,24 @@
 'use client';
 
-// Detail modal for a single match (spec §5). Surfaces the fields that the compact card hides:
-// best-of, per-participant score, advancement type, status, and the rewind action.
+// Detail modal for a single match. Surfaces what the compact card hides: best-of, the per-game
+// series (report game-by-game; the engine clinches the series), draws + per-game stats for the
+// scoring layer, advancement type, status, and the rewind action.
 
 import { useState } from 'react';
 import { Badge, Modal } from '@/components/ui';
-import type { AdvancementType, Match, MatchStatus, Participant } from '@/lib/types';
+import { seriesScore, type AdvancementType, type Match, type MatchStatus, type Participant } from '@/lib/types';
 
 interface Props {
 	match: Match;
 	byId: Record<number, Participant>;
 	roundName: string;
-	onReport: (matchId: number, winnerId: number, metadata?: Record<string, unknown>) => void;
+	drawsAllowed: boolean;
+	onReport: (matchId: number, winnerId: number, metadata?: Record<string, unknown>, stats?: unknown) => void;
 	onUnwind: (matchId: number) => void;
 	onUpdate: (matchId: number, patch: { best_of?: number; metadata?: Record<string, unknown> }) => void;
+	onReportGame: (matchId: number, winnerId: number, opts?: { stats?: unknown }) => void;
+	onUnwindGame: (matchId: number) => void;
+	onReportDraw: (matchId: number, stats?: unknown) => void;
 	onClose: () => void;
 }
 
@@ -39,7 +44,8 @@ const ADVANCEMENT_LABEL: Record<AdvancementType, string> = {
 	result: 'Result',
 	bye: 'Bye',
 	forfeit: 'Forfeit',
-	walkover: 'Walkover'
+	walkover: 'Walkover',
+	draw: 'Draw'
 };
 
 function nameOf(byId: Record<number, Participant>, id: number | null): string {
@@ -47,18 +53,38 @@ function nameOf(byId: Record<number, Participant>, id: number | null): string {
 	return byId[id]?.name ?? `#${id}`;
 }
 
-export function MatchDetailModal({ match, byId, roundName, onReport, onUnwind, onUpdate, onClose }: Props) {
+export function MatchDetailModal({
+	match,
+	byId,
+	roundName,
+	drawsAllowed,
+	onReport,
+	onUnwind,
+	onUpdate,
+	onReportGame,
+	onUnwindGame,
+	onReportDraw,
+	onClose
+}: Props) {
 	const completed = match.status === 'completed';
-	const score = (match.metadata?.score as [number, number] | undefined) ?? [0, 0];
 	const [bestOf, setBestOf] = useState(match.best_of);
-	const [s1, setS1] = useState(score[0]);
-	const [s2, setS2] = useState(score[1]);
+	// Optional per-game stat contribution (e.g. runs 7–3) the caller can attach when reporting.
+	const [statName, setStatName] = useState('');
+	const [stat1, setStat1] = useState(0);
+	const [stat2, setStat2] = useState(0);
 
-	const bothKnown = match.participant1_id != null && match.participant2_id != null;
+	const p1 = match.participant1_id;
+	const p2 = match.participant2_id;
+	const bothKnown = p1 != null && p2 != null;
 	const canReport = match.status === 'ready' && bothKnown;
 	const editableBestOf = match.status === 'pending' || match.status === 'ready';
+	const isSeries = match.best_of > 1;
+	const [sa, sb] = seriesScore(match);
 
-	const scorePatch = () => ({ metadata: { score: [s1, s2] as [number, number] } });
+	const statsPatch = () => {
+		if (!statName.trim()) return undefined;
+		return { [statName.trim()]: [stat1, stat2] as [number, number] };
+	};
 
 	return (
 		<Modal title={`Match #${match.id}`} onClose={onClose}>
@@ -72,7 +98,7 @@ export function MatchDetailModal({ match, byId, roundName, onReport, onUnwind, o
 						<input
 							type="number"
 							min={1}
-							step={2}
+							step={1}
 							value={bestOf}
 							onChange={(e) => setBestOf(Number(e.target.value))}
 							onBlur={() => bestOf !== match.best_of && onUpdate(match.id, { best_of: bestOf })}
@@ -83,24 +109,11 @@ export function MatchDetailModal({ match, byId, roundName, onReport, onUnwind, o
 					)}
 				</dd>
 
-				<dt className="text-fog-500">Score</dt>
-				<dd className="flex items-center gap-2">
-					<ScoreRow name={nameOf(byId, match.participant1_id)} value={s1} onChange={setS1} />
-					<span className="text-fog-600">–</span>
-					<ScoreRow name={nameOf(byId, match.participant2_id)} value={s2} onChange={setS2} />
-					<button
-						type="button"
-						onClick={() => onUpdate(match.id, scorePatch())}
-						className="btn-secondary px-2 py-1 text-xs"
-					>
-						Save
-					</button>
-				</dd>
+				{isSeries && (
+					<Field label="Series" value={`${sa}–${sb}${bothKnown ? `  (${nameOf(byId, p1)} – ${nameOf(byId, p2)})` : ''}`} />
+				)}
 
-				<Field
-					label="Advancement"
-					value={match.advancement_type ? ADVANCEMENT_LABEL[match.advancement_type] : '—'}
-				/>
+				<Field label="Advancement" value={match.advancement_type ? ADVANCEMENT_LABEL[match.advancement_type] : '—'} />
 
 				<dt className="text-fog-500">Status</dt>
 				<dd>
@@ -108,21 +121,70 @@ export function MatchDetailModal({ match, byId, roundName, onReport, onUnwind, o
 				</dd>
 			</dl>
 
-			{canReport && (
+			{/* Optional per-game / per-match stat contribution. */}
+			{(canReport || (isSeries && !completed)) && (
+				<div className="mt-3 border-t border-night-800 pt-3">
+					<p className="label">Stat (optional)</p>
+					<div className="flex items-center gap-2">
+						<input
+							value={statName}
+							onChange={(e) => setStatName(e.target.value)}
+							placeholder="e.g. runs"
+							className="input w-28 py-1 text-sm"
+						/>
+						<input type="number" value={stat1} onChange={(e) => setStat1(Number(e.target.value))} className="input w-16 py-1 text-center text-sm" title={nameOf(byId, p1)} />
+						<span className="text-fog-600">–</span>
+						<input type="number" value={stat2} onChange={(e) => setStat2(Number(e.target.value))} className="input w-16 py-1 text-center text-sm" title={nameOf(byId, p2)} />
+					</div>
+				</div>
+			)}
+
+			{/* Series games log + per-game reporting. */}
+			{isSeries && !completed && bothKnown && (
+				<div className="mt-3 border-t border-night-800 pt-3">
+					<p className="label">Report game {match.games.length + 1}</p>
+					<div className="flex flex-wrap gap-2">
+						<button type="button" onClick={() => onReportGame(match.id, p1!, { stats: statsPatch() })} className="btn-primary px-3 py-1.5 text-xs">
+							{nameOf(byId, p1)}
+						</button>
+						<button type="button" onClick={() => onReportGame(match.id, p2!, { stats: statsPatch() })} className="btn-primary px-3 py-1.5 text-xs">
+							{nameOf(byId, p2)}
+						</button>
+					</div>
+					{match.games.length > 0 && (
+						<div className="mt-2 flex items-center justify-between text-xs text-fog-500">
+							<span>
+								{match.games.map((g) => (g.winner_id == null ? '·' : g.winner_id === p1 ? nameOf(byId, p1)[0] : nameOf(byId, p2)[0])).join(' ')}
+							</span>
+							<button type="button" onClick={() => onUnwindGame(match.id)} className="font-display uppercase tracking-widest hover:text-rose-300">
+								↺ Undo game
+							</button>
+						</div>
+					)}
+				</div>
+			)}
+
+			{/* BO1 winner / draw reporting. */}
+			{!isSeries && canReport && (
 				<div className="mt-4 border-t border-night-800 pt-3">
 					<p className="label">Report winner</p>
 					<div className="flex flex-wrap gap-2">
-						{[match.participant1_id, match.participant2_id].map((pid) =>
+						{[p1, p2].map((pid) =>
 							pid == null ? null : (
 								<button
 									key={pid}
 									type="button"
-									onClick={() => onReport(match.id, pid, scorePatch())}
+									onClick={() => onReport(match.id, pid, undefined, statsPatch())}
 									className="btn-primary px-3 py-1.5 text-xs"
 								>
 									{nameOf(byId, pid)} wins
 								</button>
 							)
+						)}
+						{drawsAllowed && (
+							<button type="button" onClick={() => onReportDraw(match.id, statsPatch())} className="btn-secondary px-3 py-1.5 text-xs">
+								Draw
+							</button>
 						)}
 					</div>
 				</div>
@@ -131,7 +193,13 @@ export function MatchDetailModal({ match, byId, roundName, onReport, onUnwind, o
 			{completed && (
 				<div className="mt-4 flex items-center justify-between border-t border-night-800 pt-3">
 					<span className="text-sm text-fog-400">
-						Winner: <span className="font-semibold text-star-400">{nameOf(byId, match.winner_id)}</span>
+						{match.advancement_type === 'draw' ? (
+							<span className="font-semibold text-fog-200">Drawn</span>
+						) : (
+							<>
+								Winner: <span className="font-semibold text-star-400">{nameOf(byId, match.winner_id)}</span>
+							</>
+						)}
 					</span>
 					<button
 						type="button"
@@ -153,19 +221,5 @@ function Field({ label, value }: { label: string; value: string }) {
 			<dt className="text-fog-500">{label}</dt>
 			<dd className="text-fog-100">{value}</dd>
 		</>
-	);
-}
-
-function ScoreRow({ name, value, onChange }: { name: string; value: number; onChange: (v: number) => void }) {
-	return (
-		<label className="flex items-center gap-1" title={name}>
-			<input
-				type="number"
-				min={0}
-				value={value}
-				onChange={(e) => onChange(Number(e.target.value))}
-				className="input w-14 py-1 text-center text-sm"
-			/>
-		</label>
 	);
 }

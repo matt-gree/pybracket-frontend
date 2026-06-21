@@ -62,96 +62,30 @@
         "id": 12,
         "name": "Seed 12",
         "seed": 12
-      },
-      {
-        "id": 13,
-        "name": "Seed 13",
-        "seed": 13
-      },
-      {
-        "id": 14,
-        "name": "Seed 14",
-        "seed": 14
-      },
-      {
-        "id": 15,
-        "name": "Seed 15",
-        "seed": 15
-      },
-      {
-        "id": 16,
-        "name": "Seed 16",
-        "seed": 16
-      },
-      {
-        "id": 17,
-        "name": "Seed 17",
-        "seed": 17
-      },
-      {
-        "id": 18,
-        "name": "Seed 18",
-        "seed": 18
-      },
-      {
-        "id": 19,
-        "name": "Seed 19",
-        "seed": 19
-      },
-      {
-        "id": 20,
-        "name": "Seed 20",
-        "seed": 20
-      },
-      {
-        "id": 21,
-        "name": "Seed 21",
-        "seed": 21
-      },
-      {
-        "id": 22,
-        "name": "Seed 22",
-        "seed": 22
-      },
-      {
-        "id": 23,
-        "name": "Seed 23",
-        "seed": 23
-      },
-      {
-        "id": 24,
-        "name": "Seed 24",
-        "seed": 24
       }
     ],
     "phases": [
       {
         "entrants": null,
-        "format": "single_elim",
+        "format": "double_elim",
         "groups": 1,
         "id": "main",
         "options": {
           "bye_rounds": {
             "1": 2,
-            "10": 2,
-            "11": 2,
-            "12": 2,
-            "13": 2,
-            "14": 1,
             "2": 2,
             "3": 2,
             "4": 2,
             "5": 2,
             "6": 2,
-            "7": 2,
-            "8": 2,
-            "9": 2
+            "7": 1,
+            "8": 1
           }
         }
       }
     ]
   },
-  "name": "single_elim_24_custom",
+  "name": "double_elim_12_top6double",
   "result": {
     "ok": true,
     "query": {
@@ -162,22 +96,16 @@
               "is_complete": false,
               "placements": [],
               "ready_match_ids": [
-                1,
-                2,
-                5,
-                7,
-                8,
-                11,
+                4,
                 12,
-                15,
-                17,
-                20
+                26,
+                28
               ],
               "standings": [],
               "winner": null
             }
           ],
-          "format": "single_elim",
+          "format": "double_elim",
           "group_results": [
             []
           ],
@@ -265,78 +193,6 @@
           "name": "Seed 12",
           "seed": 12,
           "stats": {}
-        },
-        {
-          "id": 13,
-          "name": "Seed 13",
-          "seed": 13,
-          "stats": {}
-        },
-        {
-          "id": 14,
-          "name": "Seed 14",
-          "seed": 14,
-          "stats": {}
-        },
-        {
-          "id": 15,
-          "name": "Seed 15",
-          "seed": 15,
-          "stats": {}
-        },
-        {
-          "id": 16,
-          "name": "Seed 16",
-          "seed": 16,
-          "stats": {}
-        },
-        {
-          "id": 17,
-          "name": "Seed 17",
-          "seed": 17,
-          "stats": {}
-        },
-        {
-          "id": 18,
-          "name": "Seed 18",
-          "seed": 18,
-          "stats": {}
-        },
-        {
-          "id": 19,
-          "name": "Seed 19",
-          "seed": 19,
-          "stats": {}
-        },
-        {
-          "id": 20,
-          "name": "Seed 20",
-          "seed": 20,
-          "stats": {}
-        },
-        {
-          "id": 21,
-          "name": "Seed 21",
-          "seed": 21,
-          "stats": {}
-        },
-        {
-          "id": 22,
-          "name": "Seed 22",
-          "seed": 22,
-          "stats": {}
-        },
-        {
-          "id": 23,
-          "name": "Seed 23",
-          "seed": 23,
-          "stats": {}
-        },
-        {
-          "id": 24,
-          "name": "Seed 24",
-          "seed": 24,
-          "stats": {}
         }
       ],
       "phases": [
@@ -346,85 +202,22 @@
               "config": {
                 "bye_rounds": {
                   "1": 2,
-                  "10": 2,
-                  "11": 2,
-                  "12": 2,
-                  "13": 2,
-                  "14": 1,
-                  "15": 0,
-                  "16": 0,
-                  "17": 0,
-                  "18": 0,
-                  "19": 0,
+                  "10": 0,
+                  "11": 0,
+                  "12": 0,
                   "2": 2,
-                  "20": 0,
-                  "21": 0,
-                  "22": 0,
-                  "23": 0,
-                  "24": 0,
                   "3": 2,
                   "4": 2,
                   "5": 2,
                   "6": 2,
-                  "7": 2,
-                  "8": 2,
-                  "9": 2
+                  "7": 1,
+                  "8": 1,
+                  "9": 0
                 },
-                "third_place_match": false
+                "grand_final_reset": true
               },
-              "format": "single_elim",
+              "format": "double_elim",
               "matches": [
-                {
-                  "advancement_type": null,
-                  "best_of": 1,
-                  "bracket_side": "winners",
-                  "games": [],
-                  "id": 1,
-                  "loser_id": null,
-                  "metadata": {},
-                  "next_loser_match_id": null,
-                  "next_winner_match_id": 3,
-                  "participant1_id": 16,
-                  "participant2_id": 21,
-                  "round_number": 1,
-                  "stats": {},
-                  "status": "ready",
-                  "winner_id": null
-                },
-                {
-                  "advancement_type": null,
-                  "best_of": 1,
-                  "bracket_side": "winners",
-                  "games": [],
-                  "id": 2,
-                  "loser_id": null,
-                  "metadata": {},
-                  "next_loser_match_id": null,
-                  "next_winner_match_id": 3,
-                  "participant1_id": 17,
-                  "participant2_id": 20,
-                  "round_number": 1,
-                  "stats": {},
-                  "status": "ready",
-                  "winner_id": null
-                },
-                {
-                  "advancement_type": null,
-                  "best_of": 1,
-                  "bracket_side": "winners",
-                  "games": [],
-                  "id": 3,
-                  "loser_id": null,
-                  "metadata": {},
-                  "next_loser_match_id": null,
-                  "next_winner_match_id": 4,
-                  "participant1_id": null,
-                  "participant2_id": null,
-                  "round_number": 2,
-                  "stats": {},
-                  "status": "pending",
-                  "winner_id": null
-                },
                 {
                   "advancement_type": null,
                   "best_of": 1,
@@ -433,129 +226,10 @@
                   "id": 4,
                   "loser_id": null,
                   "metadata": {},
-                  "next_loser_match_id": null,
-                  "next_winner_match_id": 6,
-                  "participant1_id": 1,
-                  "participant2_id": null,
-                  "round_number": 3,
-                  "stats": {},
-                  "status": "pending",
-                  "winner_id": null
-                },
-                {
-                  "advancement_type": null,
-                  "best_of": 1,
-                  "bracket_side": "winners",
-                  "games": [],
-                  "id": 5,
-                  "loser_id": null,
-                  "metadata": {},
-                  "next_loser_match_id": null,
-                  "next_winner_match_id": 6,
-                  "participant1_id": 8,
-                  "participant2_id": 9,
-                  "round_number": 3,
-                  "stats": {},
-                  "status": "ready",
-                  "winner_id": null
-                },
-                {
-                  "advancement_type": null,
-                  "best_of": 1,
-                  "bracket_side": "winners",
-                  "games": [],
-                  "id": 6,
-                  "loser_id": null,
-                  "metadata": {},
-                  "next_loser_match_id": null,
-                  "next_winner_match_id": 10,
-                  "participant1_id": null,
-                  "participant2_id": null,
-                  "round_number": 4,
-                  "stats": {},
-                  "status": "pending",
-                  "winner_id": null
-                },
-                {
-                  "advancement_type": null,
-                  "best_of": 1,
-                  "bracket_side": "winners",
-                  "games": [],
-                  "id": 7,
-                  "loser_id": null,
-                  "metadata": {},
-                  "next_loser_match_id": null,
-                  "next_winner_match_id": 9,
-                  "participant1_id": 4,
-                  "participant2_id": 13,
-                  "round_number": 3,
-                  "stats": {},
-                  "status": "ready",
-                  "winner_id": null
-                },
-                {
-                  "advancement_type": null,
-                  "best_of": 1,
-                  "bracket_side": "winners",
-                  "games": [],
-                  "id": 8,
-                  "loser_id": null,
-                  "metadata": {},
-                  "next_loser_match_id": null,
-                  "next_winner_match_id": 9,
-                  "participant1_id": 5,
+                  "next_loser_match_id": 52,
+                  "next_winner_match_id": 18,
+                  "participant1_id": 9,
                   "participant2_id": 12,
-                  "round_number": 3,
-                  "stats": {},
-                  "status": "ready",
-                  "winner_id": null
-                },
-                {
-                  "advancement_type": null,
-                  "best_of": 1,
-                  "bracket_side": "winners",
-                  "games": [],
-                  "id": 9,
-                  "loser_id": null,
-                  "metadata": {},
-                  "next_loser_match_id": null,
-                  "next_winner_match_id": 10,
-                  "participant1_id": null,
-                  "participant2_id": null,
-                  "round_number": 4,
-                  "stats": {},
-                  "status": "pending",
-                  "winner_id": null
-                },
-                {
-                  "advancement_type": null,
-                  "best_of": 1,
-                  "bracket_side": "winners",
-                  "games": [],
-                  "id": 10,
-                  "loser_id": null,
-                  "metadata": {},
-                  "next_loser_match_id": null,
-                  "next_winner_match_id": 23,
-                  "participant1_id": null,
-                  "participant2_id": null,
-                  "round_number": 5,
-                  "stats": {},
-                  "status": "pending",
-                  "winner_id": null
-                },
-                {
-                  "advancement_type": null,
-                  "best_of": 1,
-                  "bracket_side": "winners",
-                  "games": [],
-                  "id": 11,
-                  "loser_id": null,
-                  "metadata": {},
-                  "next_loser_match_id": null,
-                  "next_winner_match_id": 13,
-                  "participant1_id": 15,
-                  "participant2_id": 24,
                   "round_number": 1,
                   "stats": {},
                   "status": "ready",
@@ -569,95 +243,10 @@
                   "id": 12,
                   "loser_id": null,
                   "metadata": {},
-                  "next_loser_match_id": null,
-                  "next_winner_match_id": 13,
-                  "participant1_id": 18,
-                  "participant2_id": 23,
-                  "round_number": 1,
-                  "stats": {},
-                  "status": "ready",
-                  "winner_id": null
-                },
-                {
-                  "advancement_type": null,
-                  "best_of": 1,
-                  "bracket_side": "winners",
-                  "games": [],
-                  "id": 13,
-                  "loser_id": null,
-                  "metadata": {},
-                  "next_loser_match_id": null,
-                  "next_winner_match_id": 14,
-                  "participant1_id": null,
-                  "participant2_id": null,
-                  "round_number": 2,
-                  "stats": {},
-                  "status": "pending",
-                  "winner_id": null
-                },
-                {
-                  "advancement_type": null,
-                  "best_of": 1,
-                  "bracket_side": "winners",
-                  "games": [],
-                  "id": 14,
-                  "loser_id": null,
-                  "metadata": {},
-                  "next_loser_match_id": null,
-                  "next_winner_match_id": 16,
-                  "participant1_id": 2,
-                  "participant2_id": null,
-                  "round_number": 3,
-                  "stats": {},
-                  "status": "pending",
-                  "winner_id": null
-                },
-                {
-                  "advancement_type": null,
-                  "best_of": 1,
-                  "bracket_side": "winners",
-                  "games": [],
-                  "id": 15,
-                  "loser_id": null,
-                  "metadata": {},
-                  "next_loser_match_id": null,
-                  "next_winner_match_id": 16,
-                  "participant1_id": 7,
-                  "participant2_id": 10,
-                  "round_number": 3,
-                  "stats": {},
-                  "status": "ready",
-                  "winner_id": null
-                },
-                {
-                  "advancement_type": null,
-                  "best_of": 1,
-                  "bracket_side": "winners",
-                  "games": [],
-                  "id": 16,
-                  "loser_id": null,
-                  "metadata": {},
-                  "next_loser_match_id": null,
+                  "next_loser_match_id": 54,
                   "next_winner_match_id": 22,
-                  "participant1_id": null,
-                  "participant2_id": null,
-                  "round_number": 4,
-                  "stats": {},
-                  "status": "pending",
-                  "winner_id": null
-                },
-                {
-                  "advancement_type": null,
-                  "best_of": 1,
-                  "bracket_side": "winners",
-                  "games": [],
-                  "id": 17,
-                  "loser_id": null,
-                  "metadata": {},
-                  "next_loser_match_id": null,
-                  "next_winner_match_id": 18,
-                  "participant1_id": 19,
-                  "participant2_id": 22,
+                  "participant1_id": 10,
+                  "participant2_id": 11,
                   "round_number": 1,
                   "stats": {},
                   "status": "ready",
@@ -671,62 +260,11 @@
                   "id": 18,
                   "loser_id": null,
                   "metadata": {},
-                  "next_loser_match_id": null,
-                  "next_winner_match_id": 19,
-                  "participant1_id": 14,
+                  "next_loser_match_id": 55,
+                  "next_winner_match_id": 25,
+                  "participant1_id": 8,
                   "participant2_id": null,
                   "round_number": 2,
-                  "stats": {},
-                  "status": "pending",
-                  "winner_id": null
-                },
-                {
-                  "advancement_type": null,
-                  "best_of": 1,
-                  "bracket_side": "winners",
-                  "games": [],
-                  "id": 19,
-                  "loser_id": null,
-                  "metadata": {},
-                  "next_loser_match_id": null,
-                  "next_winner_match_id": 21,
-                  "participant1_id": 3,
-                  "participant2_id": null,
-                  "round_number": 3,
-                  "stats": {},
-                  "status": "pending",
-                  "winner_id": null
-                },
-                {
-                  "advancement_type": null,
-                  "best_of": 1,
-                  "bracket_side": "winners",
-                  "games": [],
-                  "id": 20,
-                  "loser_id": null,
-                  "metadata": {},
-                  "next_loser_match_id": null,
-                  "next_winner_match_id": 21,
-                  "participant1_id": 6,
-                  "participant2_id": 11,
-                  "round_number": 3,
-                  "stats": {},
-                  "status": "ready",
-                  "winner_id": null
-                },
-                {
-                  "advancement_type": null,
-                  "best_of": 1,
-                  "bracket_side": "winners",
-                  "games": [],
-                  "id": 21,
-                  "loser_id": null,
-                  "metadata": {},
-                  "next_loser_match_id": null,
-                  "next_winner_match_id": 22,
-                  "participant1_id": null,
-                  "participant2_id": null,
-                  "round_number": 4,
                   "stats": {},
                   "status": "pending",
                   "winner_id": null
@@ -739,8 +277,127 @@
                   "id": 22,
                   "loser_id": null,
                   "metadata": {},
-                  "next_loser_match_id": null,
-                  "next_winner_match_id": 23,
+                  "next_loser_match_id": 53,
+                  "next_winner_match_id": 27,
+                  "participant1_id": 7,
+                  "participant2_id": null,
+                  "round_number": 2,
+                  "stats": {},
+                  "status": "pending",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 25,
+                  "loser_id": null,
+                  "metadata": {},
+                  "next_loser_match_id": 54,
+                  "next_winner_match_id": 29,
+                  "participant1_id": 1,
+                  "participant2_id": null,
+                  "round_number": 3,
+                  "stats": {},
+                  "status": "pending",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 26,
+                  "loser_id": null,
+                  "metadata": {},
+                  "next_loser_match_id": 55,
+                  "next_winner_match_id": 29,
+                  "participant1_id": 4,
+                  "participant2_id": 5,
+                  "round_number": 3,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 27,
+                  "loser_id": null,
+                  "metadata": {},
+                  "next_loser_match_id": 52,
+                  "next_winner_match_id": 30,
+                  "participant1_id": 2,
+                  "participant2_id": null,
+                  "round_number": 3,
+                  "stats": {},
+                  "status": "pending",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 28,
+                  "loser_id": null,
+                  "metadata": {},
+                  "next_loser_match_id": 53,
+                  "next_winner_match_id": 30,
+                  "participant1_id": 3,
+                  "participant2_id": 6,
+                  "round_number": 3,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 29,
+                  "loser_id": null,
+                  "metadata": {},
+                  "next_loser_match_id": 58,
+                  "next_winner_match_id": 31,
+                  "participant1_id": null,
+                  "participant2_id": null,
+                  "round_number": 4,
+                  "stats": {},
+                  "status": "pending",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 30,
+                  "loser_id": null,
+                  "metadata": {},
+                  "next_loser_match_id": 59,
+                  "next_winner_match_id": 31,
+                  "participant1_id": null,
+                  "participant2_id": null,
+                  "round_number": 4,
+                  "stats": {},
+                  "status": "pending",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 31,
+                  "loser_id": null,
+                  "metadata": {},
+                  "next_loser_match_id": 61,
+                  "next_winner_match_id": 62,
                   "participant1_id": null,
                   "participant2_id": null,
                   "round_number": 5,
@@ -751,16 +408,203 @@
                 {
                   "advancement_type": null,
                   "best_of": 1,
-                  "bracket_side": "winners",
+                  "bracket_side": "losers",
                   "games": [],
-                  "id": 23,
+                  "id": 52,
+                  "loser_id": null,
+                  "metadata": {},
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": 56,
+                  "participant1_id": null,
+                  "participant2_id": null,
+                  "round_number": 1,
+                  "stats": {},
+                  "status": "pending",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "losers",
+                  "games": [],
+                  "id": 53,
+                  "loser_id": null,
+                  "metadata": {},
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": 56,
+                  "participant1_id": null,
+                  "participant2_id": null,
+                  "round_number": 1,
+                  "stats": {},
+                  "status": "pending",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "losers",
+                  "games": [],
+                  "id": 54,
+                  "loser_id": null,
+                  "metadata": {},
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": 57,
+                  "participant1_id": null,
+                  "participant2_id": null,
+                  "round_number": 1,
+                  "stats": {},
+                  "status": "pending",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "losers",
+                  "games": [],
+                  "id": 55,
+                  "loser_id": null,
+                  "metadata": {},
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": 57,
+                  "participant1_id": null,
+                  "participant2_id": null,
+                  "round_number": 1,
+                  "stats": {},
+                  "status": "pending",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "losers",
+                  "games": [],
+                  "id": 56,
+                  "loser_id": null,
+                  "metadata": {},
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": 58,
+                  "participant1_id": null,
+                  "participant2_id": null,
+                  "round_number": 2,
+                  "stats": {},
+                  "status": "pending",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "losers",
+                  "games": [],
+                  "id": 57,
+                  "loser_id": null,
+                  "metadata": {},
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": 59,
+                  "participant1_id": null,
+                  "participant2_id": null,
+                  "round_number": 2,
+                  "stats": {},
+                  "status": "pending",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "losers",
+                  "games": [],
+                  "id": 58,
+                  "loser_id": null,
+                  "metadata": {},
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": 60,
+                  "participant1_id": null,
+                  "participant2_id": null,
+                  "round_number": 3,
+                  "stats": {},
+                  "status": "pending",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "losers",
+                  "games": [],
+                  "id": 59,
+                  "loser_id": null,
+                  "metadata": {},
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": 60,
+                  "participant1_id": null,
+                  "participant2_id": null,
+                  "round_number": 3,
+                  "stats": {},
+                  "status": "pending",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "losers",
+                  "games": [],
+                  "id": 60,
+                  "loser_id": null,
+                  "metadata": {},
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": 61,
+                  "participant1_id": null,
+                  "participant2_id": null,
+                  "round_number": 4,
+                  "stats": {},
+                  "status": "pending",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "losers",
+                  "games": [],
+                  "id": 61,
+                  "loser_id": null,
+                  "metadata": {},
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": 62,
+                  "participant1_id": null,
+                  "participant2_id": null,
+                  "round_number": 5,
+                  "stats": {},
+                  "status": "pending",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "grand_final",
+                  "games": [],
+                  "id": 62,
                   "loser_id": null,
                   "metadata": {},
                   "next_loser_match_id": null,
                   "next_winner_match_id": null,
                   "participant1_id": null,
                   "participant2_id": null,
-                  "round_number": 6,
+                  "round_number": 1,
+                  "stats": {},
+                  "status": "pending",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "grand_final",
+                  "games": [],
+                  "id": 63,
+                  "loser_id": null,
+                  "metadata": {},
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": null,
+                  "participant2_id": null,
+                  "round_number": 2,
                   "stats": {},
                   "status": "pending",
                   "winner_id": null
@@ -838,78 +682,6 @@
                   "name": "Seed 12",
                   "seed": 12,
                   "stats": {}
-                },
-                {
-                  "id": 13,
-                  "name": "Seed 13",
-                  "seed": 13,
-                  "stats": {}
-                },
-                {
-                  "id": 14,
-                  "name": "Seed 14",
-                  "seed": 14,
-                  "stats": {}
-                },
-                {
-                  "id": 15,
-                  "name": "Seed 15",
-                  "seed": 15,
-                  "stats": {}
-                },
-                {
-                  "id": 16,
-                  "name": "Seed 16",
-                  "seed": 16,
-                  "stats": {}
-                },
-                {
-                  "id": 17,
-                  "name": "Seed 17",
-                  "seed": 17,
-                  "stats": {}
-                },
-                {
-                  "id": 18,
-                  "name": "Seed 18",
-                  "seed": 18,
-                  "stats": {}
-                },
-                {
-                  "id": 19,
-                  "name": "Seed 19",
-                  "seed": 19,
-                  "stats": {}
-                },
-                {
-                  "id": 20,
-                  "name": "Seed 20",
-                  "seed": 20,
-                  "stats": {}
-                },
-                {
-                  "id": 21,
-                  "name": "Seed 21",
-                  "seed": 21,
-                  "stats": {}
-                },
-                {
-                  "id": 22,
-                  "name": "Seed 22",
-                  "seed": 22,
-                  "stats": {}
-                },
-                {
-                  "id": 23,
-                  "name": "Seed 23",
-                  "seed": 23,
-                  "stats": {}
-                },
-                {
-                  "id": 24,
-                  "name": "Seed 24",
-                  "seed": 24,
-                  "stats": {}
                 }
               ],
               "rounds": [
@@ -917,72 +689,120 @@
                   "best_of": null,
                   "bracket_side": "winners",
                   "match_ids": [
-                    1,
-                    2,
-                    11,
-                    12,
-                    17
+                    4,
+                    12
                   ],
-                  "name": "Round 1",
+                  "name": "Winners Round 1",
                   "number": 1
                 },
                 {
                   "best_of": null,
                   "bracket_side": "winners",
                   "match_ids": [
-                    3,
-                    13,
-                    18
+                    18,
+                    22
                   ],
-                  "name": "Round 2",
+                  "name": "Winners Round 2",
                   "number": 2
                 },
                 {
                   "best_of": null,
                   "bracket_side": "winners",
                   "match_ids": [
-                    4,
-                    5,
-                    7,
-                    8,
-                    14,
-                    15,
-                    19,
-                    20
+                    25,
+                    26,
+                    27,
+                    28
                   ],
-                  "name": "Round 3",
+                  "name": "Winners Quarterfinals",
                   "number": 3
                 },
                 {
                   "best_of": null,
                   "bracket_side": "winners",
                   "match_ids": [
-                    6,
-                    9,
-                    16,
-                    21
+                    29,
+                    30
                   ],
-                  "name": "Quarterfinals",
+                  "name": "Winners Semifinals",
                   "number": 4
                 },
                 {
                   "best_of": null,
                   "bracket_side": "winners",
                   "match_ids": [
-                    10,
-                    22
+                    31
                   ],
-                  "name": "Semifinals",
+                  "name": "Winners Finals",
                   "number": 5
                 },
                 {
                   "best_of": null,
-                  "bracket_side": "winners",
+                  "bracket_side": "losers",
                   "match_ids": [
-                    23
+                    52,
+                    53,
+                    54,
+                    55
                   ],
-                  "name": "Final",
-                  "number": 6
+                  "name": "Losers Round 1",
+                  "number": 1
+                },
+                {
+                  "best_of": null,
+                  "bracket_side": "losers",
+                  "match_ids": [
+                    56,
+                    57
+                  ],
+                  "name": "Losers Round 2",
+                  "number": 2
+                },
+                {
+                  "best_of": null,
+                  "bracket_side": "losers",
+                  "match_ids": [
+                    58,
+                    59
+                  ],
+                  "name": "Losers Round 3",
+                  "number": 3
+                },
+                {
+                  "best_of": null,
+                  "bracket_side": "losers",
+                  "match_ids": [
+                    60
+                  ],
+                  "name": "Losers Round 4",
+                  "number": 4
+                },
+                {
+                  "best_of": null,
+                  "bracket_side": "losers",
+                  "match_ids": [
+                    61
+                  ],
+                  "name": "Losers Finals",
+                  "number": 5
+                },
+                {
+                  "best_of": null,
+                  "bracket_side": "grand_final",
+                  "match_ids": [
+                    62
+                  ],
+                  "name": "Grand Final",
+                  "number": 1
+                },
+                {
+                  "best_of": null,
+                  "bracket_side": "grand_final",
+                  "match_ids": [
+                    63
+                  ],
+                  "name": "Grand Final Reset",
+                  "number": 2
                 }
               ],
               "state": "published"
@@ -991,23 +811,17 @@
           "config": {
             "bye_rounds": {
               "1": 2,
-              "10": 2,
-              "11": 2,
-              "12": 2,
-              "13": 2,
-              "14": 1,
               "2": 2,
               "3": 2,
               "4": 2,
               "5": 2,
               "6": 2,
-              "7": 2,
-              "8": 2,
-              "9": 2
+              "7": 1,
+              "8": 1
             }
           },
           "entrants": null,
-          "format": "single_elim",
+          "format": "double_elim",
           "group_assignment": "snake",
           "groups": 1,
           "id": "main",

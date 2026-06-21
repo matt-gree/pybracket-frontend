@@ -9,6 +9,13 @@
 // a bye contributes no node and no connector — only matches that actually render are laid out
 // and only edges between two rendered matches become connector lines. Round-robin and Swiss
 // are not laid out here — they keep the simple equal-spacing column flow.
+//
+// A match renders iff it will ever host a real two-player contest — i.e. its occupant count is
+// 2. We deliberately key off occupant count, NOT the mutable `status`: in a byed double-elim the
+// losers bracket contains "phantom" matches that only ever receive one real participant (the
+// engine auto-advances them). Those start `pending` and empty, then flip to `bye` as losers drop
+// in — so filtering on `status` made the bracket reshape itself on every reported result. Occupant
+// count is structural and fixed at build, so the rendered shape is stable from the first draw.
 
 import type { Bracket, BracketSide, Match } from './types';
 
@@ -50,20 +57,99 @@ export function isScheduleFormat(format: Bracket['format']): boolean {
 	return format === 'round_robin' || format === 'swiss';
 }
 
+function isResetMatch(m: Match): boolean {
+	return m.bracket_side === 'grand_final' && m.round_number === 2;
+}
+
+/**
+ * How many real participants will ever occupy each match (0, 1, or 2). A TS mirror of
+ * pybracket's `compute_occupant_counts` (advancement/engine.py): the same feeder-graph walk over
+ * the serialized bracket. A count of 2 means a real contest; 1 is a bye (its lone participant
+ * auto-advances); 0 is a phantom slot that only exists to keep the structure a power of two.
+ */
+function occupantCounts(bracket: Bracket): Map<number, number> {
+	const byId = new Map(bracket.matches.map((m) => [m.id, m]));
+	const incoming = new Map<number, Array<[number, 'winner' | 'loser']>>();
+	for (const m of bracket.matches) incoming.set(m.id, []);
+	for (const m of bracket.matches) {
+		if (m.next_winner_match_id != null && incoming.has(m.next_winner_match_id))
+			incoming.get(m.next_winner_match_id)!.push([m.id, 'winner']);
+		if (m.next_loser_match_id != null && incoming.has(m.next_loser_match_id))
+			incoming.get(m.next_loser_match_id)!.push([m.id, 'loser']);
+	}
+	const memo = new Map<number, number>();
+	const count = (id: number): number => {
+		const cached = memo.get(id);
+		if (cached !== undefined) return cached;
+		memo.set(id, 0); // cycle guard (the graph is a DAG, but be safe)
+		const m = byId.get(id)!;
+		const feeders = incoming.get(id)!;
+		let c: number;
+		if (feeders.length === 0) {
+			c = (m.participant1_id != null ? 1 : 0) + (m.participant2_id != null ? 1 : 0);
+		} else {
+			// A winner is delivered whenever the source has anyone; a loser only by a real (2-player) match.
+			const baseConcrete = Math.max(0, 2 - feeders.length);
+			c = baseConcrete + feeders.reduce((s, [src, kind]) => {
+				const sc = count(src);
+				return s + (kind === 'winner' ? (sc >= 1 ? 1 : 0) : sc >= 2 ? 1 : 0);
+			}, 0);
+		}
+		c = Math.min(2, c);
+		memo.set(id, c);
+		return c;
+	};
+	const out = new Map<number, number>();
+	for (const m of bracket.matches) out.set(m.id, count(m.id));
+	return out;
+}
+
+/**
+ * The ids of matches the canvas should draw: those that will host a real two-player contest
+ * (occupant count 2), plus the grand-final reset (a feeder-less but real match that is activated
+ * dynamically). Stable across the whole tournament, so the rendered shape never shifts as results
+ * come in. Shared by the canvas, the layout, and the compliance tests so they always agree.
+ */
+export function renderableMatchIds(bracket: Bracket): Set<number> {
+	const counts = occupantCounts(bracket);
+	const ids = new Set<number>();
+	for (const m of bracket.matches) if (counts.get(m.id) === 2 || isResetMatch(m)) ids.add(m.id);
+	return ids;
+}
+
 /** Lay out one bracket side as a coordinate tree. Returns positions keyed by match id. */
-function layoutSide(side: BracketSide, allMatches: Match[], roundName: Map<string, string>): SideLayout {
-	// Only matches that actually render: byes are auto-advanced by the library and never shown.
-	const matches = allMatches.filter((m) => m.status !== 'bye');
+function layoutSide(
+	side: BracketSide,
+	allMatches: Match[],
+	renderable: Set<number>,
+	roundName: Map<string, string>
+): SideLayout {
+	// Only matches that actually render — see renderableMatchIds (byes/phantoms are excluded).
+	const matches = allMatches.filter((m) => renderable.has(m.id));
 	const idSet = new Set(matches.map((m) => m.id));
 	const byId = new Map<number, Match>();
 	for (const m of matches) byId.set(m.id, m);
+	const allById = new Map(allMatches.map((m) => [m.id, m]));
 
-	// Winner-advancement feeders within this side, restricted to rendered matches, define the
-	// tree spine. A bye (or a seed entering directly) feeds no edge — it just isn't here.
+	// The rendered match a winner reaches, following its advancement *through* any hidden bye
+	// matches in this side. The losers bracket of a byed double-elim threads winners through
+	// single-occupant bye matches (the engine auto-advances them); without bridging those, a
+	// rendered match whose direct target is a hidden bye would be drawn with no connector — the
+	// disconnected fragments seen with heavy byes. Returns null if the winner leaves this side.
+	const resolveTarget = (id: number): number | null => {
+		let t = allById.get(id)!.next_winner_match_id;
+		let guard = 0;
+		while (t != null && allById.has(t) && !idSet.has(t) && guard++ < allMatches.length) {
+			t = allById.get(t)!.next_winner_match_id;
+		}
+		return t != null && idSet.has(t) ? t : null;
+	};
+
+	// Winner-advancement feeders within this side (bye matches bridged), defining the tree spine.
 	const feedersOf = new Map<number, number[]>();
 	for (const m of matches) {
-		const target = m.next_winner_match_id;
-		if (target != null && idSet.has(target)) {
+		const target = resolveTarget(m.id);
+		if (target != null) {
 			const list = feedersOf.get(target);
 			if (list) list.push(m.id);
 			else feedersOf.set(target, [m.id]);
@@ -103,7 +189,7 @@ function layoutSide(side: BracketSide, allMatches: Match[], roundName: Map<strin
 	// Roots (the final, or any match whose winner-target leaves this side) first, in id order so
 	// the leaf slots run top-to-bottom; then defensively place anything the walk didn't reach.
 	const roots = matches
-		.filter((m) => m.next_winner_match_id == null || !idSet.has(m.next_winner_match_id))
+		.filter((m) => resolveTarget(m.id) == null)
 		.map((m) => m.id)
 		.sort((a, b) => a - b);
 	for (const r of roots) place(r);
@@ -136,12 +222,13 @@ export function layoutBracket(bracket: Bracket): SideLayout[] {
 	const roundName = new Map<string, string>();
 	for (const r of bracket.rounds) roundName.set(`${r.bracket_side}:${r.number}`, r.name);
 
+	const renderable = renderableMatchIds(bracket);
 	const out: SideLayout[] = [];
 	for (const side of SIDE_ORDER) {
 		const sideMatches = bracket.matches.filter((m) => m.bracket_side === side);
 		// Skip a side that has no rendered matches (e.g. nothing but byes).
-		if (!sideMatches.some((m) => m.status !== 'bye')) continue;
-		out.push(layoutSide(side, sideMatches, roundName));
+		if (!sideMatches.some((m) => renderable.has(m.id))) continue;
+		out.push(layoutSide(side, sideMatches, renderable, roundName));
 	}
 	return out;
 }

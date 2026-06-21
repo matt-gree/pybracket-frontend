@@ -32,6 +32,16 @@
         "id": 6,
         "name": "Seed 6",
         "seed": 6
+      },
+      {
+        "id": 7,
+        "name": "Seed 7",
+        "seed": 7
+      },
+      {
+        "id": 8,
+        "name": "Seed 8",
+        "seed": 8
       }
     ],
     "phases": [
@@ -44,7 +54,7 @@
       }
     ]
   },
-  "name": "single_elim_6_default",
+  "name": "single_elim_8_draft",
   "result": {
     "ok": true,
     "query": {
@@ -55,7 +65,9 @@
               "is_complete": false,
               "placements": [],
               "ready_match_ids": [
+                1,
                 2,
+                3,
                 4
               ],
               "standings": [],
@@ -72,7 +84,7 @@
           "is_complete": false,
           "is_draftable": false,
           "is_preview": false,
-          "state": "published"
+          "state": "draft"
         }
       ]
     },
@@ -114,6 +126,18 @@
           "name": "Seed 6",
           "seed": 6,
           "stats": {}
+        },
+        {
+          "id": 7,
+          "name": "Seed 7",
+          "seed": 7,
+          "stats": {}
+        },
+        {
+          "id": 8,
+          "name": "Seed 8",
+          "seed": 8,
+          "stats": {}
         }
       ],
       "phases": [
@@ -127,7 +151,7 @@
               "format": "single_elim",
               "matches": [
                 {
-                  "advancement_type": "bye",
+                  "advancement_type": null,
                   "best_of": 1,
                   "bracket_side": "winners",
                   "games": [],
@@ -137,11 +161,11 @@
                   "next_loser_match_id": null,
                   "next_winner_match_id": 5,
                   "participant1_id": 1,
-                  "participant2_id": null,
+                  "participant2_id": 8,
                   "round_number": 1,
                   "stats": {},
-                  "status": "bye",
-                  "winner_id": 1
+                  "status": "ready",
+                  "winner_id": null
                 },
                 {
                   "advancement_type": null,
@@ -161,7 +185,7 @@
                   "winner_id": null
                 },
                 {
-                  "advancement_type": "bye",
+                  "advancement_type": null,
                   "best_of": 1,
                   "bracket_side": "winners",
                   "games": [],
@@ -171,11 +195,11 @@
                   "next_loser_match_id": null,
                   "next_winner_match_id": 6,
                   "participant1_id": 2,
-                  "participant2_id": null,
+                  "participant2_id": 7,
                   "round_number": 1,
                   "stats": {},
-                  "status": "bye",
-                  "winner_id": 2
+                  "status": "ready",
+                  "winner_id": null
                 },
                 {
                   "advancement_type": null,
@@ -204,7 +228,7 @@
                   "metadata": {},
                   "next_loser_match_id": null,
                   "next_winner_match_id": 7,
-                  "participant1_id": 1,
+                  "participant1_id": null,
                   "participant2_id": null,
                   "round_number": 2,
                   "stats": {},
@@ -221,7 +245,7 @@
                   "metadata": {},
                   "next_loser_match_id": null,
                   "next_winner_match_id": 7,
-                  "participant1_id": 2,
+                  "participant1_id": null,
                   "participant2_id": null,
                   "round_number": 2,
                   "stats": {},
@@ -282,6 +306,18 @@
                   "name": "Seed 6",
                   "seed": 6,
                   "stats": {}
+                },
+                {
+                  "id": 7,
+                  "name": "Seed 7",
+                  "seed": 7,
+                  "stats": {}
+                },
+                {
+                  "id": 8,
+                  "name": "Seed 8",
+                  "seed": 8,
+                  "stats": {}
                 }
               ],
               "rounds": [
@@ -317,7 +353,7 @@
                   "number": 3
                 }
               ],
-              "state": "published"
+              "state": "draft"
             }
           ],
           "config": {},
@@ -326,7 +362,7 @@
           "group_assignment": "snake",
           "groups": 1,
           "id": "main",
-          "state": "published"
+          "state": "draft"
         }
       ]
     }

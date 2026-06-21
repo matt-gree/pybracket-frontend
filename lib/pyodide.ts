@@ -2,7 +2,7 @@
 // single `dispatch(action)` entry point backed by public/py/bridge.py. Memoised so the heavy
 // runtime download happens exactly once per page load.
 
-import type { AnyDispatchResult } from './types';
+import type { DispatchResult } from './types';
 
 const PYODIDE_VERSION = '0.27.7';
 const PYODIDE_INDEX = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
@@ -19,7 +19,7 @@ export const STAGE_LABEL: Record<LoadStage, string> = {
 };
 
 export interface Engine {
-	dispatch(action: unknown): AnyDispatchResult;
+	dispatch(action: unknown): DispatchResult;
 }
 
 interface PyodideInterface {
@@ -67,9 +67,9 @@ async function loadEngine(onStage?: (stage: LoadStage) => void): Promise<Engine>
 
 	onStage?.('ready');
 	return {
-		dispatch(action: unknown): AnyDispatchResult {
+		dispatch(action: unknown): DispatchResult {
 			const raw = dispatchFn(JSON.stringify(action));
-			return JSON.parse(raw) as AnyDispatchResult;
+			return JSON.parse(raw) as DispatchResult;
 		}
 	};
 }

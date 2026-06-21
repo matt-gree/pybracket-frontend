@@ -1,0 +1,1314 @@
+{
+  "action": {
+    "config": {},
+    "op": "create",
+    "participants": [
+      {
+        "id": 1,
+        "name": "Seed 1",
+        "seed": 1
+      },
+      {
+        "id": 2,
+        "name": "Seed 2",
+        "seed": 2
+      },
+      {
+        "id": 3,
+        "name": "Seed 3",
+        "seed": 3
+      },
+      {
+        "id": 4,
+        "name": "Seed 4",
+        "seed": 4
+      },
+      {
+        "id": 5,
+        "name": "Seed 5",
+        "seed": 5
+      },
+      {
+        "id": 6,
+        "name": "Seed 6",
+        "seed": 6
+      },
+      {
+        "id": 7,
+        "name": "Seed 7",
+        "seed": 7
+      },
+      {
+        "id": 8,
+        "name": "Seed 8",
+        "seed": 8
+      }
+    ],
+    "phases": [
+      {
+        "entrants": null,
+        "format": "league",
+        "groups": 2,
+        "id": "main",
+        "options": {
+          "double": true,
+          "points_system": {
+            "draw": 1,
+            "draws_allowed": true,
+            "loss": 0,
+            "win": 3
+          }
+        }
+      }
+    ]
+  },
+  "name": "league_8_2div",
+  "result": {
+    "ok": true,
+    "query": {
+      "phases": [
+        {
+          "brackets": [
+            {
+              "is_complete": false,
+              "placements": [],
+              "ready_match_ids": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24
+              ],
+              "standings": [
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 1,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "acc:points:for": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                },
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 2,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "acc:points:for": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                },
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 3,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "acc:points:for": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                },
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 4,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "acc:points:for": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                },
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 5,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "acc:points:for": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                },
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 6,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "acc:points:for": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                },
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 7,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "acc:points:for": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                },
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 8,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "acc:points:for": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                }
+              ],
+              "winner": null
+            }
+          ],
+          "format": "league",
+          "group_results": [
+            [
+              {
+                "group": 0,
+                "participant_id": 1,
+                "rank": 1
+              },
+              {
+                "group": 0,
+                "participant_id": 2,
+                "rank": 1
+              },
+              {
+                "group": 0,
+                "participant_id": 3,
+                "rank": 1
+              },
+              {
+                "group": 0,
+                "participant_id": 4,
+                "rank": 1
+              },
+              {
+                "group": 0,
+                "participant_id": 5,
+                "rank": 1
+              },
+              {
+                "group": 0,
+                "participant_id": 6,
+                "rank": 1
+              },
+              {
+                "group": 0,
+                "participant_id": 7,
+                "rank": 1
+              },
+              {
+                "group": 0,
+                "participant_id": 8,
+                "rank": 1
+              }
+            ]
+          ],
+          "groups": 1,
+          "has_brackets": true,
+          "id": "main",
+          "is_complete": false,
+          "is_draftable": false,
+          "is_preview": false,
+          "league": {
+            "division_standings": [
+              [
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 1,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "acc:points:for": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                },
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 4,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "acc:points:for": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                },
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 5,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "acc:points:for": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                },
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 8,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "acc:points:for": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                }
+              ],
+              [
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 2,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "acc:points:for": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                },
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 3,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "acc:points:for": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                },
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 6,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "acc:points:for": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                },
+                {
+                  "draws": 0,
+                  "losses": 0,
+                  "participant_id": 7,
+                  "points": 0.0,
+                  "rank": 1,
+                  "tiebreaker_scores": {
+                    "acc:points:for": 0.0,
+                    "win_count": 0.0
+                  },
+                  "wins": 0
+                }
+              ]
+            ],
+            "divisions": [
+              [
+                1,
+                4,
+                5,
+                8
+              ],
+              [
+                2,
+                3,
+                6,
+                7
+              ]
+            ],
+            "points_system": {
+              "draw": 1,
+              "draws_allowed": true,
+              "loss": 0,
+              "win": 3
+            },
+            "schedule": [
+              {
+                "fixtures": [
+                  {
+                    "away_id": 8,
+                    "division": 0,
+                    "home_id": 1,
+                    "match_id": 1
+                  },
+                  {
+                    "away_id": 4,
+                    "division": 0,
+                    "home_id": 5,
+                    "match_id": 2
+                  },
+                  {
+                    "away_id": 7,
+                    "division": 1,
+                    "home_id": 2,
+                    "match_id": 3
+                  },
+                  {
+                    "away_id": 3,
+                    "division": 1,
+                    "home_id": 6,
+                    "match_id": 4
+                  }
+                ],
+                "number": 1
+              },
+              {
+                "fixtures": [
+                  {
+                    "away_id": 1,
+                    "division": 0,
+                    "home_id": 5,
+                    "match_id": 5
+                  },
+                  {
+                    "away_id": 4,
+                    "division": 0,
+                    "home_id": 8,
+                    "match_id": 6
+                  },
+                  {
+                    "away_id": 2,
+                    "division": 1,
+                    "home_id": 6,
+                    "match_id": 7
+                  },
+                  {
+                    "away_id": 3,
+                    "division": 1,
+                    "home_id": 7,
+                    "match_id": 8
+                  }
+                ],
+                "number": 2
+              },
+              {
+                "fixtures": [
+                  {
+                    "away_id": 1,
+                    "division": 0,
+                    "home_id": 4,
+                    "match_id": 9
+                  },
+                  {
+                    "away_id": 5,
+                    "division": 0,
+                    "home_id": 8,
+                    "match_id": 10
+                  },
+                  {
+                    "away_id": 2,
+                    "division": 1,
+                    "home_id": 3,
+                    "match_id": 11
+                  },
+                  {
+                    "away_id": 6,
+                    "division": 1,
+                    "home_id": 7,
+                    "match_id": 12
+                  }
+                ],
+                "number": 3
+              },
+              {
+                "fixtures": [
+                  {
+                    "away_id": 1,
+                    "division": 0,
+                    "home_id": 8,
+                    "match_id": 13
+                  },
+                  {
+                    "away_id": 5,
+                    "division": 0,
+                    "home_id": 4,
+                    "match_id": 14
+                  },
+                  {
+                    "away_id": 2,
+                    "division": 1,
+                    "home_id": 7,
+                    "match_id": 15
+                  },
+                  {
+                    "away_id": 6,
+                    "division": 1,
+                    "home_id": 3,
+                    "match_id": 16
+                  }
+                ],
+                "number": 4
+              },
+              {
+                "fixtures": [
+                  {
+                    "away_id": 5,
+                    "division": 0,
+                    "home_id": 1,
+                    "match_id": 17
+                  },
+                  {
+                    "away_id": 8,
+                    "division": 0,
+                    "home_id": 4,
+                    "match_id": 18
+                  },
+                  {
+                    "away_id": 6,
+                    "division": 1,
+                    "home_id": 2,
+                    "match_id": 19
+                  },
+                  {
+                    "away_id": 7,
+                    "division": 1,
+                    "home_id": 3,
+                    "match_id": 20
+                  }
+                ],
+                "number": 5
+              },
+              {
+                "fixtures": [
+                  {
+                    "away_id": 4,
+                    "division": 0,
+                    "home_id": 1,
+                    "match_id": 21
+                  },
+                  {
+                    "away_id": 8,
+                    "division": 0,
+                    "home_id": 5,
+                    "match_id": 22
+                  },
+                  {
+                    "away_id": 3,
+                    "division": 1,
+                    "home_id": 2,
+                    "match_id": 23
+                  },
+                  {
+                    "away_id": 7,
+                    "division": 1,
+                    "home_id": 6,
+                    "match_id": 24
+                  }
+                ],
+                "number": 6
+              }
+            ]
+          },
+          "state": "published"
+        }
+      ]
+    },
+    "tournament": {
+      "config": {},
+      "participants": [
+        {
+          "id": 1,
+          "name": "Seed 1",
+          "seed": 1,
+          "stats": {}
+        },
+        {
+          "id": 2,
+          "name": "Seed 2",
+          "seed": 2,
+          "stats": {}
+        },
+        {
+          "id": 3,
+          "name": "Seed 3",
+          "seed": 3,
+          "stats": {}
+        },
+        {
+          "id": 4,
+          "name": "Seed 4",
+          "seed": 4,
+          "stats": {}
+        },
+        {
+          "id": 5,
+          "name": "Seed 5",
+          "seed": 5,
+          "stats": {}
+        },
+        {
+          "id": 6,
+          "name": "Seed 6",
+          "seed": 6,
+          "stats": {}
+        },
+        {
+          "id": 7,
+          "name": "Seed 7",
+          "seed": 7,
+          "stats": {}
+        },
+        {
+          "id": 8,
+          "name": "Seed 8",
+          "seed": 8,
+          "stats": {}
+        }
+      ],
+      "phases": [
+        {
+          "brackets": [
+            {
+              "config": {
+                "best_of": 1,
+                "divisions": [
+                  [
+                    1,
+                    4,
+                    5,
+                    8
+                  ],
+                  [
+                    2,
+                    3,
+                    6,
+                    7
+                  ]
+                ],
+                "double": true,
+                "points_system": {
+                  "draw": 1,
+                  "draws_allowed": true,
+                  "loss": 0,
+                  "win": 3
+                }
+              },
+              "format": "league",
+              "matches": [
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 1,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 8,
+                    "division": 0,
+                    "home_id": 1,
+                    "matchweek": 1
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 1,
+                  "participant2_id": 8,
+                  "round_number": 1,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 2,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 4,
+                    "division": 0,
+                    "home_id": 5,
+                    "matchweek": 1
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 5,
+                  "participant2_id": 4,
+                  "round_number": 1,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 3,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 7,
+                    "division": 1,
+                    "home_id": 2,
+                    "matchweek": 1
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 2,
+                  "participant2_id": 7,
+                  "round_number": 1,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 4,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 3,
+                    "division": 1,
+                    "home_id": 6,
+                    "matchweek": 1
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 6,
+                  "participant2_id": 3,
+                  "round_number": 1,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 5,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 1,
+                    "division": 0,
+                    "home_id": 5,
+                    "matchweek": 2
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 5,
+                  "participant2_id": 1,
+                  "round_number": 2,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 6,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 4,
+                    "division": 0,
+                    "home_id": 8,
+                    "matchweek": 2
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 8,
+                  "participant2_id": 4,
+                  "round_number": 2,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 7,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 2,
+                    "division": 1,
+                    "home_id": 6,
+                    "matchweek": 2
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 6,
+                  "participant2_id": 2,
+                  "round_number": 2,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 8,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 3,
+                    "division": 1,
+                    "home_id": 7,
+                    "matchweek": 2
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 7,
+                  "participant2_id": 3,
+                  "round_number": 2,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 9,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 1,
+                    "division": 0,
+                    "home_id": 4,
+                    "matchweek": 3
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 4,
+                  "participant2_id": 1,
+                  "round_number": 3,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 10,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 5,
+                    "division": 0,
+                    "home_id": 8,
+                    "matchweek": 3
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 8,
+                  "participant2_id": 5,
+                  "round_number": 3,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 11,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 2,
+                    "division": 1,
+                    "home_id": 3,
+                    "matchweek": 3
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 3,
+                  "participant2_id": 2,
+                  "round_number": 3,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 12,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 6,
+                    "division": 1,
+                    "home_id": 7,
+                    "matchweek": 3
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 7,
+                  "participant2_id": 6,
+                  "round_number": 3,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 13,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 1,
+                    "division": 0,
+                    "home_id": 8,
+                    "matchweek": 4
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 8,
+                  "participant2_id": 1,
+                  "round_number": 4,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 14,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 5,
+                    "division": 0,
+                    "home_id": 4,
+                    "matchweek": 4
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 4,
+                  "participant2_id": 5,
+                  "round_number": 4,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 15,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 2,
+                    "division": 1,
+                    "home_id": 7,
+                    "matchweek": 4
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 7,
+                  "participant2_id": 2,
+                  "round_number": 4,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 16,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 6,
+                    "division": 1,
+                    "home_id": 3,
+                    "matchweek": 4
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 3,
+                  "participant2_id": 6,
+                  "round_number": 4,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 17,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 5,
+                    "division": 0,
+                    "home_id": 1,
+                    "matchweek": 5
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 1,
+                  "participant2_id": 5,
+                  "round_number": 5,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 18,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 8,
+                    "division": 0,
+                    "home_id": 4,
+                    "matchweek": 5
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 4,
+                  "participant2_id": 8,
+                  "round_number": 5,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 19,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 6,
+                    "division": 1,
+                    "home_id": 2,
+                    "matchweek": 5
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 2,
+                  "participant2_id": 6,
+                  "round_number": 5,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 20,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 7,
+                    "division": 1,
+                    "home_id": 3,
+                    "matchweek": 5
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 3,
+                  "participant2_id": 7,
+                  "round_number": 5,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 21,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 4,
+                    "division": 0,
+                    "home_id": 1,
+                    "matchweek": 6
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 1,
+                  "participant2_id": 4,
+                  "round_number": 6,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 22,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 8,
+                    "division": 0,
+                    "home_id": 5,
+                    "matchweek": 6
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 5,
+                  "participant2_id": 8,
+                  "round_number": 6,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 23,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 3,
+                    "division": 1,
+                    "home_id": 2,
+                    "matchweek": 6
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 2,
+                  "participant2_id": 3,
+                  "round_number": 6,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                },
+                {
+                  "advancement_type": null,
+                  "best_of": 1,
+                  "bracket_side": "winners",
+                  "games": [],
+                  "id": 24,
+                  "loser_id": null,
+                  "metadata": {
+                    "away_id": 7,
+                    "division": 1,
+                    "home_id": 6,
+                    "matchweek": 6
+                  },
+                  "next_loser_match_id": null,
+                  "next_winner_match_id": null,
+                  "participant1_id": 6,
+                  "participant2_id": 7,
+                  "round_number": 6,
+                  "stats": {},
+                  "status": "ready",
+                  "winner_id": null
+                }
+              ],
+              "participants": [
+                {
+                  "id": 1,
+                  "name": "Seed 1",
+                  "seed": 1,
+                  "stats": {}
+                },
+                {
+                  "id": 2,
+                  "name": "Seed 2",
+                  "seed": 2,
+                  "stats": {}
+                },
+                {
+                  "id": 3,
+                  "name": "Seed 3",
+                  "seed": 3,
+                  "stats": {}
+                },
+                {
+                  "id": 4,
+                  "name": "Seed 4",
+                  "seed": 4,
+                  "stats": {}
+                },
+                {
+                  "id": 5,
+                  "name": "Seed 5",
+                  "seed": 5,
+                  "stats": {}
+                },
+                {
+                  "id": 6,
+                  "name": "Seed 6",
+                  "seed": 6,
+                  "stats": {}
+                },
+                {
+                  "id": 7,
+                  "name": "Seed 7",
+                  "seed": 7,
+                  "stats": {}
+                },
+                {
+                  "id": 8,
+                  "name": "Seed 8",
+                  "seed": 8,
+                  "stats": {}
+                }
+              ],
+              "rounds": [
+                {
+                  "best_of": null,
+                  "bracket_side": "winners",
+                  "match_ids": [
+                    1,
+                    2,
+                    3,
+                    4
+                  ],
+                  "name": "Matchweek 1",
+                  "number": 1
+                },
+                {
+                  "best_of": null,
+                  "bracket_side": "winners",
+                  "match_ids": [
+                    5,
+                    6,
+                    7,
+                    8
+                  ],
+                  "name": "Matchweek 2",
+                  "number": 2
+                },
+                {
+                  "best_of": null,
+                  "bracket_side": "winners",
+                  "match_ids": [
+                    9,
+                    10,
+                    11,
+                    12
+                  ],
+                  "name": "Matchweek 3",
+                  "number": 3
+                },
+                {
+                  "best_of": null,
+                  "bracket_side": "winners",
+                  "match_ids": [
+                    13,
+                    14,
+                    15,
+                    16
+                  ],
+                  "name": "Matchweek 4",
+                  "number": 4
+                },
+                {
+                  "best_of": null,
+                  "bracket_side": "winners",
+                  "match_ids": [
+                    17,
+                    18,
+                    19,
+                    20
+                  ],
+                  "name": "Matchweek 5",
+                  "number": 5
+                },
+                {
+                  "best_of": null,
+                  "bracket_side": "winners",
+                  "match_ids": [
+                    21,
+                    22,
+                    23,
+                    24
+                  ],
+                  "name": "Matchweek 6 (Final)",
+                  "number": 6
+                }
+              ],
+              "state": "published"
+            }
+          ],
+          "config": {
+            "double": true,
+            "points_system": {
+              "draw": 1,
+              "draws_allowed": true,
+              "loss": 0,
+              "win": 3
+            }
+          },
+          "entrants": null,
+          "format": "league",
+          "group_assignment": "snake",
+          "groups": 2,
+          "id": "main",
+          "state": "published"
+        }
+      ]
+    }
+  }
+}
